@@ -4,7 +4,7 @@
 **TL;DR:** A deterministic, non-learned positional signal built from sinusoids at exponentially spaced frequencies. Added directly to the token embeddings before the first layer. Gives each position a unique vector and — because the frequencies are geometric — encodes relative offsets as linear functions, which attention can pick up on.
 
 **Prereqs:** [attention](attention.md)
-**Related:** [positional-encoding](positional-encoding.md)
+**Related:** [positional-encoding](_positional-encoding.md)
 
 ---
 

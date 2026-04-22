@@ -20,7 +20,7 @@ This repository is a personal zero-to-hero reference for LLMs, organized so that
 - **Cross-topic links** are handled via a `Related:` line at the top of each concept file. No duplicate files across folders.
 - **Two kinds of concept files**, distinguished by a one-line italic label under the title:
   - **Depth files** — one specific technique, grounded in its source paper(s). Follow [`TEMPLATE-DEPTH.md`](TEMPLATE-DEPTH.md). Named after the technique (`rope.md`, `gqa.md`, `adamw.md`).
-  - **Taxonomy files** — overviews of a class of techniques, linking out to depth files. Follow [`TEMPLATE-TAXONOMY.md`](TEMPLATE-TAXONOMY.md). Named after the category (`positional-encoding.md`, `optimizers.md`, `attention-variants.md`).
+  - **Taxonomy files** — overviews of a class of techniques, linking out to depth files. Follow [`TEMPLATE-TAXONOMY.md`](TEMPLATE-TAXONOMY.md). Named **`_<category>.md`** with a leading underscore to distinguish from depth files in the same folder (`_positional-encoding.md`, `_optimizers.md`, `_attention-variants.md`). They sort alphabetically above depth files in directory listings, which is the point.
 
 ---
 

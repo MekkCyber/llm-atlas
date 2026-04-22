@@ -29,10 +29,23 @@ Everything in this folder is about the model's internal structure: the building 
 
 ---
 
+## Overview Pages (taxonomies)
+
+- [Normalization](_normalization.md) — LayerNorm, RMSNorm, pre/post/reordered placement.
+- [Mixture-of-Experts](_moe.md) — sparse FFN variants and their routing / balancing choices.
+
 ## Concept Pages (depth)
 
 - [Transformer Block](transformer-block.md)
 - [Multi-Head Attention](multi-head-attention.md)
+- [Multi-head Latent Attention (MLA)](mla.md)
+- [QK-norm](qk-norm.md)
+- [Reordered norm](reordered-norm.md)
+- [DeepSeekMoE](deepseek-moe.md)
+- [Load-balancing auxiliary loss](load-balancing-loss.md)
+- [Sequence-wise balance loss](sequence-wise-balance-loss.md)
+- [Auxiliary-loss-free balancing](aux-loss-free-balancing.md)
+- [Expert capacity factor](capacity-factor.md)
 
 ---
 

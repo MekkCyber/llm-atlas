@@ -31,8 +31,18 @@ Quantization is how a model that needed an H100 to train fits on a 24GB consumer
 
 ---
 
+## Overview Pages (taxonomies)
+
+- [Number formats](_number-formats.md) — FP32/TF32/FP16/BF16/FP8/MXFP8/FP4/MXFP4/INT8/INT4/NF4 with bit layouts, ranges, and scale-granularity tradeoffs.
+
+## Concept Pages (depth)
+
+- [FP8](fp8.md) — E4M3 / E5M2 format, scaling, matmul semantics.
+
+---
+
 ## Related
 
 - [inference/](../inference/) — quantization is mostly an inference optimization.
-- [pre-training/](../pre-training/) — mixed precision in training (FP8, BF16).
+- [pre-training/](../pre-training/) — mixed precision in training (FP8, BF16); see also [pre-training/fp8-training.md](../pre-training/fp8-training.md).
 - [post-training/fine-tuning/](../post-training/fine-tuning/) — QLoRA sits here.

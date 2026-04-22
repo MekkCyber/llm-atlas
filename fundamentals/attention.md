@@ -4,7 +4,7 @@
 **TL;DR:** A mechanism that lets every token in a sequence look at every other token directly and mix their information, weighted by learned similarity. It replaces recurrence with a fully parallel operation where any two positions are one hop apart.
 
 **Prereqs:** none (this is a foundational primitive)
-**Related:** [multi-head-attention](../architectures/multi-head-attention.md), [transformer-block](../architectures/transformer-block.md), [positional-encoding](positional-encoding.md)
+**Related:** [multi-head-attention](../architectures/multi-head-attention.md), [transformer-block](../architectures/transformer-block.md), [positional-encoding](_positional-encoding.md)
 
 ---
 
@@ -48,7 +48,7 @@ Every modern LLM is, at its core, a stack of attention operations. Everything el
 
 - **Forgetting `√d_k`** — without the scale, training becomes unstable or stalls at high dim.
 - **Numerical stability**: the softmax needs to subtract the row max before exp (standard trick). FlashAttention's clever part is doing this *tiled* without materializing the full `n × n` matrix.
-- **Attention is permutation-equivariant** — it has no idea of token order. You must inject position information separately (see [positional-encoding](positional-encoding.md)).
+- **Attention is permutation-equivariant** — it has no idea of token order. You must inject position information separately (see [positional-encoding](_positional-encoding.md)).
 - **Attention scores ≠ feature importance.** A tempting interpretation but often misleading — the value vectors and subsequent layers matter too.
 
 ## Sources

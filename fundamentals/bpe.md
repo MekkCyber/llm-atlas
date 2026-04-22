@@ -4,7 +4,7 @@
 **TL;DR:** Start from a character (or byte) vocabulary. Count every adjacent pair in the training corpus, merge the most frequent pair into a new token, and repeat. After `N` merges you have a vocabulary of `|chars| + N` subword units where common words stay whole and rare words decompose into frequent pieces. Originally a 1994 data-compression algorithm, repurposed for NLP in 2016, now the tokenization scheme used by essentially every modern LLM.
 
 **Prereqs:** none (foundational)
-**Related:** [tokenization](tokenization.md)
+**Related:** [tokenization](_tokenization.md)
 
 ---
 

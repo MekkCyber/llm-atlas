@@ -32,6 +32,19 @@ Data pipelines are the silent half of LLM training. Architecture and algorithm g
 
 ---
 
+## Overview Pages (taxonomies)
+
+- [Data curation](_data-curation.md) — the sourcing → filtering → dedup → decontamination → mixture pipeline.
+
+## Concept Pages (depth)
+
+- [Dolma](dolma.md) — AI2's open corpus and OLMo-Mix / Dolmino pipelines.
+- [Deduplication](deduplication.md) — URL, document, paragraph, and n-gram dedup.
+- [Quality filtering](quality-filtering.md) — FastText / classifier / perplexity filtering.
+- [Decontamination](decontamination.md) — removing eval leakage from training corpora.
+
+---
+
 ## Related
 
 - [fundamentals/](../fundamentals/) — tokenization as a primitive.

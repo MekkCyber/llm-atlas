@@ -33,6 +33,7 @@ This folder is about the *training-time* infrastructure: how compute is schedule
 ## Concept Pages (depth)
 
 - [Ray](ray.md)
+- [DualPipe](dualpipe.md)
 
 ---
 

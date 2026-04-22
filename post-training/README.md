@@ -1,46 +1,56 @@
 # Post-Training
 
-*How pretrained models are refined — through supervised fine-tuning, reinforcement learning, and preference learning — with the algorithms, reward signals, and rollout infrastructure that turn a base model into something useful.*
+*How pretrained models are refined — via supervised fine-tuning, reinforcement learning, preference optimization, and reasoning-elicitation — with the algorithms, reward signals, and rollout infrastructure that turn a base model into something useful.*
 
 ---
 
 ## What This Is
 
-A pretrained base model knows a lot but is not directly useful. Post-training is the set of techniques that shape its behavior: SFT to teach format and style, preference learning (RLHF, DPO, GRPO) to align it with what people actually want, and RL with verifiable rewards to produce capabilities like math and code. Fine-tuning and reasoning are important enough to have their own subfolders.
+A pretrained base model predicts next tokens; it doesn't follow instructions, refuse harmful requests, or reason step-by-step on demand. Post-training is the collection of techniques that *shape* behavior without retraining from scratch.
+
+This folder is organized around three axes — **fine-tuning** (supervised adaptation), **reasoning** (techniques that produce step-by-step thinking, mostly RL-based), and **the rest** (general RL, preference optimization, reward design, and pipeline concepts that aren't reasoning-specific).
 
 ---
 
-## What Belongs Here
+## How to navigate
 
-- **Supervised fine-tuning (SFT)** — instruction tuning, data design, format conventions.
-- **Reward modeling** — how preference data is collected and a reward model trained.
-- **Policy optimization** — PPO, GRPO, REINFORCE variants, KL penalties.
-- **Preference-based objectives** — DPO, IPO, KTO, and why they avoid explicit reward models.
-- **Rollout infrastructure** — generating samples at scale, batching, off-policy correction.
-- **Constitutional AI & RLAIF** — using models to generate training signal.
-- **Post-training recipes** — full pipelines combining SFT + preference learning + RL.
+### 1. Start with the maps
+
+- **[_post-training](_post-training.md)** — the whole post-training landscape: supervised vs preference vs reward-based. Pipeline shape.
+- **[_rl](_rl.md)** — the RL side in depth: policy gradient, PPO, GRPO, KL, advantage estimation. Math formulas, intuitive walk-through.
+- **[_rewards](_rewards.md)** — where the scalar reward signal comes from: rule-based, ORM, PRM, preference RM, shaping.
+
+### 2. General post-training depth files (root of this folder)
+
+- **[grpo](grpo.md)** — Group Relative Policy Optimization. The policy optimizer behind most modern reasoning RL.
+- **[rlvr](rlvr.md)** — RL with Verifiable Rewards. Rule-based reward signal, no learned RM.
+- **[rejection-sampling](rejection-sampling.md)** — generate K candidates, filter, SFT on the survivors. Used heavily in Llama 3 and R1.
+
+### 3. Subfolders
+
+- **[fine-tuning/](fine-tuning/)** — supervised adaptation: SFT, LoRA, adapters, merging. The signal is "imitate this reference completion."
+- **[reasoning/](reasoning/)** — elicit step-by-step thinking: long-CoT RL, PRMs, ORMs, MCTS. The signal is "did the solution verify?"
+
+---
 
 ## Reading Order
 
-1. SFT & instruction tuning
-2. Reward modeling
-3. PPO and the RLHF pipeline
-4. DPO and preference objectives
-5. GRPO and RL for reasoning
-6. Rollout infrastructure
+A single coherent path through the folder, once the maps are read:
 
----
-
-## Subfolders
-
-- [fine-tuning/](fine-tuning/) — SFT, LoRA, adapter methods, model merging.
-- [reasoning/](reasoning/) — CoT, PRMs, test-time compute, RL for reasoning.
+1. [_post-training](_post-training.md) — the overall map.
+2. [fine-tuning/](fine-tuning/) — start with SFT basics (the common ancestor of every recipe).
+3. [_rl](_rl.md) — policy-gradient fundamentals before jumping into specific algorithms.
+4. [_rewards](_rewards.md) — the five reward families.
+5. [rlvr](rlvr.md) and [grpo](grpo.md) — the modern-default reasoning-RL stack.
+6. [rejection-sampling](rejection-sampling.md) — how production recipes generate SFT data from RL checkpoints.
+7. [reasoning/](reasoning/) — long-CoT RL, PRM/ORM depth, MCTS.
 
 ---
 
 ## Related
 
 - [pre-training/](../pre-training/) — where the base model comes from.
-- [systems/](../systems/) — the rollout and orchestration infrastructure post-training relies on.
-- [evaluation/](../evaluation/) — reward models are themselves evaluated here.
-- [safety/](../safety/) — safety is a post-training technique.
+- [systems/](../systems/) — the rollout and orchestration infrastructure post-training depends on.
+- [evaluation/](../evaluation/) — reward models and reasoning models are evaluated here.
+- [safety/](../safety/) — safety RL and refusal training.
+- [case-studies/](../case-studies/) — end-to-end post-training pipelines (DeepSeek-V3, DeepSeek-R1, OLMo 2).

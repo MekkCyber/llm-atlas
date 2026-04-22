@@ -38,8 +38,8 @@ If you're doing zero-to-hero, start here.
 
 Entry points for each class of primitives. Start here to orient yourself before diving into a specific technique.
 
-- [Tokenization](tokenization.md) — how raw text becomes integer tokens.
-- [Positional Encoding](positional-encoding.md) — how Transformers are told where each token sits.
+- [Tokenization](_tokenization.md) — how raw text becomes integer tokens.
+- [Positional Encoding](_positional-encoding.md) — how Transformers are told where each token sits.
 
 ## Concept Pages (depth)
 
@@ -48,6 +48,7 @@ One technique per page, grounded in its source paper(s).
 - [Scaled Dot-Product Attention](attention.md)
 - [Byte-Pair Encoding (BPE)](bpe.md)
 - [Sinusoidal Positional Encoding](sinusoidal-encoding.md)
+- [Z-loss](z-loss.md)
 
 ---
 

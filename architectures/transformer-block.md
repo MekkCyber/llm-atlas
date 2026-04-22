@@ -4,7 +4,7 @@
 **TL;DR:** The repeating unit of a Transformer: attention (mix information across tokens) → feed-forward (transform within each token), each wrapped in a residual connection and a LayerNorm. Stack N of these and you have a Transformer.
 
 **Prereqs:** [attention](../fundamentals/attention.md), [multi-head-attention](multi-head-attention.md)
-**Related:** [positional-encoding](../fundamentals/positional-encoding.md)
+**Related:** [positional-encoding](../fundamentals/_positional-encoding.md)
 
 ---
 
