@@ -22,9 +22,13 @@ This folder is organized around three axes — **fine-tuning** (supervised adapt
 
 ### 2. General post-training depth files (root of this folder)
 
+- **[ppo](ppo.md)** — Proximal Policy Optimization. The classical-RLHF ancestor of GRPO; clipped-ratio policy-gradient with a value network.
 - **[grpo](grpo.md)** — Group Relative Policy Optimization. The policy optimizer behind most modern reasoning RL.
+- **[dpo](dpo.md)** — Direct Preference Optimization. The closed-form, rollout-free alternative to PPO-RLHF for pairwise preference data.
 - **[rlvr](rlvr.md)** — RL with Verifiable Rewards. Rule-based reward signal, no learned RM.
 - **[rejection-sampling](rejection-sampling.md)** — generate K candidates, filter, SFT on the survivors. Used heavily in Llama 3 and R1.
+- **[cot-reward-model](cot-reward-model.md)** — a learned RM that *generates* a reasoning trace + JSON judgment; 84% → 98% verifier-accuracy gap over value-head RMs (Kimi k1.5).
+- **[rl-prompt-curation](rl-prompt-curation.md)** — the four data-curation rules for RL prompt pools, from Kimi k1.5. Includes the "easy-to-hack" filter.
 
 ### 3. Subfolders
 
@@ -41,9 +45,13 @@ A single coherent path through the folder, once the maps are read:
 2. [fine-tuning/](fine-tuning/) — start with SFT basics (the common ancestor of every recipe).
 3. [_rl](_rl.md) — policy-gradient fundamentals before jumping into specific algorithms.
 4. [_rewards](_rewards.md) — the five reward families.
-5. [rlvr](rlvr.md) and [grpo](grpo.md) — the modern-default reasoning-RL stack.
-6. [rejection-sampling](rejection-sampling.md) — how production recipes generate SFT data from RL checkpoints.
-7. [reasoning/](reasoning/) — long-CoT RL, PRM/ORM depth, MCTS.
+5. [ppo](ppo.md) — the classical baseline; foundation for GRPO and mirror descent.
+6. [rlvr](rlvr.md) and [grpo](grpo.md) — the modern-default reasoning-RL stack.
+7. [dpo](dpo.md) — offline preference optimization without rollouts.
+8. [rejection-sampling](rejection-sampling.md) — how production recipes generate SFT data from RL checkpoints.
+9. [rl-prompt-curation](rl-prompt-curation.md) — RL-prompt-pool data engineering.
+10. [cot-reward-model](cot-reward-model.md) — generative verifiers for RLVR.
+11. [reasoning/](reasoning/) — long-CoT RL, mirror descent, length penalty, long2short, PRM/ORM, MCTS.
 
 ---
 
@@ -53,4 +61,4 @@ A single coherent path through the folder, once the maps are read:
 - [systems/](../systems/) — the rollout and orchestration infrastructure post-training depends on.
 - [evaluation/](../evaluation/) — reward models and reasoning models are evaluated here.
 - [safety/](../safety/) — safety RL and refusal training.
-- [case-studies/](../case-studies/) — end-to-end post-training pipelines (DeepSeek-V3, DeepSeek-R1, OLMo 2).
+- [case-studies/](../case-studies/) — end-to-end post-training pipelines (DeepSeek-V3, DeepSeek-R1, Kimi k1.5, OLMo 2).

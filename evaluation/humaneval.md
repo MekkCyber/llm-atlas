@@ -1,0 +1,126 @@
+# HumanEval
+*Depth — the 164-problem Python coding benchmark from the Codex paper.*
+
+**TL;DR:** **164 hand-written Python programming problems**, each with a function signature, docstring, reference solution, and ~7.7 hidden unit tests. Introduced by Chen et al. (OpenAI Codex paper, 2021, arXiv 2107.03374). Metric: **Pass@k** via an unbiased estimator over `n ≥ k` samples. Was *the* code benchmark from 2021 to ~2023. Now **saturated at the frontier** (90–96% Pass@1 for modern instruction-tuned models), heavily contaminated, and largely superseded by LiveCodeBench for hard eval. Still reported as a historical sanity check and for small-model comparisons. **HumanEval+** (Liu et al. 2023) adds many more tests to the same 164 problems and drops scores by ~5–8 pp. **HumanEval-X / HumanEval-Mul** extend to multiple languages.
+
+**Prereqs:** *(none)*
+**Related:** [livecodebench](livecodebench.md) · [codeforces-benchmark](codeforces-benchmark.md)
+
+---
+
+## What it is
+
+Paper: *Evaluating Large Language Models Trained on Code*, Chen et al., OpenAI (Codex), 2021, arXiv 2107.03374.
+
+- **164 Python problems**, written by hand by the Codex team.
+- Each problem has:
+  - A function signature.
+  - A docstring describing the task.
+  - A reference solution.
+  - **~7.7 hidden unit tests on average** (paper Section 2.2).
+- **Metric**: Pass@k — probability that at least one of `k` random samples passes all tests.
+
+Released as part of the Codex paper to measure the model that became GitHub Copilot. Repo: https://github.com/openai/human-eval.
+
+---
+
+## How it works as an LLM eval
+
+### The Pass@k estimator
+
+Paper Section 2.1, Eq. 1 — the **unbiased** Pass@k:
+
+```
+pass@k = E_problems [ 1  −  C(n - c, k) / C(n, k) ]
+```
+
+where `n` = number of samples drawn per problem, `c` = number of correct samples among them, `k ≤ n`, `C(·,·)` = binomial coefficient.
+
+Interpretation: the probability that a random subset of `k` samples (of the `n` drawn) contains at least one correct solution. The paper uses `n = 200` for Pass@100 to get a low-variance estimator. At `k = 1, n = 1`, `Pass@1` is just accuracy.
+
+### Sampling temperature
+
+- **Pass@1** is usually reported at low temperature (T=0 or T=0.2) — want the most likely completion.
+- **Pass@k for k > 1** is usually sampled at higher temperature (T=0.6–0.8) — need diverse candidates.
+
+Sampling temperature is a hyperparameter the paper tunes separately for each k. A fair comparison requires matching or disclosing the sampling setup.
+
+### Typical reporting
+
+- **Pass@1** — dominant modern reporting.
+- **Pass@10, Pass@100** — historical, less common now.
+- Codex-12B in the original paper: 28.8% Pass@1, 46.8% Pass@10, 72.3% Pass@100.
+
+---
+
+## Multi-language extensions
+
+### HumanEval-X (CodeGeeX, 2023)
+
+- Introduced in *CodeGeeX* (Zheng et al., KDD 2023, arXiv 2303.17568).
+- **Hand-translated** the 164 HumanEval problems into **C++, Java, JavaScript, Go**, plus Python.
+- Total: 5 languages × 164 = **820 problem-solution pairs**.
+- The original multilingual extension.
+
+### HumanEval-Mul (DeepSeek-Coder, 2024)
+
+- Term popularized by *DeepSeek-Coder* (arXiv 2401.14196).
+- Effectively HumanEval translated across multiple languages — often 6–8 including TypeScript, PHP, Bash.
+- The exact language set varies by paper — DeepSeek-Coder-V2 (arXiv 2406.11931) has one set; other papers use others.
+- **Check the table footnote** — "HumanEval-Mul" is not a single canonical benchmark; it's a pattern.
+
+### MultiPL-E (2022)
+
+- Independent effort: *MultiPL-E* (Cassano et al. 2022, arXiv 2208.08227).
+- Uses **compiler-based translation** (not hand) to extend HumanEval + MBPP to ~18 languages.
+- More languages, lower per-language translation quality.
+
+---
+
+## Why it matters
+
+- **The canonical code benchmark 2021–2023.** Every code LLM from that era reports it: Codex, CodeGen, InCoder, StarCoder, Code Llama, DeepSeek-Coder. Trend data across this period is all HumanEval.
+- **Cheap and simple.** 164 problems, Python-only, unit tests in a single file. A frontier model evaluates in minutes.
+- **Sanity check for new models.** A model that can't hit 80% HumanEval Pass@1 probably has a basic codegen problem. Still useful as a quick "does the model write Python at all" smoke test.
+- **Historical baseline.** The paper's own numbers (Codex 28.8%, later PaLM, Chinchilla, etc.) are the reference points other benchmarks compare to.
+
+---
+
+## Gotchas & tricks
+
+- **Saturated at the frontier.** Frontier models hit 90–96% Pass@1; small 7B code models routinely hit 80%+. Discrimination above 85% is mostly noise. Use LiveCodeBench for hard eval.
+- **Contamination is extreme.** The 164 problems and their reference solutions have been public since July 2021. Every pretraining corpus has seen them, often multiple times (the repo is mirrored, discussed in blogs, used in tutorials). Modern HumanEval numbers are believed inflated by memorization.
+- **HumanEval+ exposes this.** *Is Your Code Generated by ChatGPT Really Correct?* (Liu et al. 2023) adds ~80× more tests per problem to the same 164. Scores drop 5–8 pp — the gap is memorization-vs-real-correctness.
+- **Problems are easy by 2025 standards.** Most are 1–10 line solutions to standard programming-homework-tier tasks. Nothing algorithmically hard. Contrast with competitive-programming benchmarks.
+- **Pass@k at small k with small n is noisy.** 164 × Pass@1 has substantial variance. Papers that report a single Pass@1 number without error bars are usually hiding ±1–3 pp run-to-run variance.
+- **Language bias: Python-only.** HumanEval proper is Python. Multi-language claims require HumanEval-X, HumanEval-Mul, or MultiPL-E — and those have translation-quality caveats.
+- **The unbiased Pass@k estimator needs `n ≥ k`.** Some papers report "Pass@10 with n=10" which is just accuracy on 10 samples, not the unbiased estimator. Check.
+- **Testing is shallow.** ~7.7 tests per problem is enough to catch blatant errors but misses edge cases a human reviewer would flag. HumanEval+ fixes this at the cost of backward-compatibility.
+- **Some problems have bugs.** Reference solutions are occasionally wrong or tests are overly strict. These have been documented; most implementations patch them.
+
+---
+
+## Typical modern numbers (HumanEval Pass@1)
+
+| Model | HumanEval |
+|---|---|
+| o1 / o3 | ~95–96% |
+| GPT-4o | ~90–94% |
+| Claude 3.5 Sonnet | ~92–94% |
+| DeepSeek-V3 | 82.6% |
+| Kimi k1.5-short | 81.5% |
+| Qwen2.5-72B-Instruct | 77.3% |
+| Llama-3.1-405B-Instruct | 77.2% |
+| DeepSeek-Coder-V2 | ~85–90% |
+| StarCoder2-7B-Instruct | ~70–85% |
+
+---
+
+## Sources
+
+- Paper: *Evaluating Large Language Models Trained on Code* — Chen et al., OpenAI, 2021, arXiv 2107.03374 — the original HumanEval paper and Pass@k estimator (Section 2.1, Eq. 1).
+- Repo: https://github.com/openai/human-eval — reference implementation.
+- Paper: *Is Your Code Generated by ChatGPT Really Correct?* — Liu et al., 2023, arXiv 2305.01210 — HumanEval+.
+- Paper: *CodeGeeX: A Pre-Trained Model for Code Generation with Multilingual Evaluations on HumanEval-X* — Zheng et al., KDD 2023, arXiv 2303.17568 — HumanEval-X.
+- Paper: *DeepSeek-Coder: When the Large Language Model Meets Programming* — arXiv 2401.14196 — HumanEval-Mul.
+- Paper: *MultiPL-E: A Scalable and Polyglot Approach to Benchmarking Neural Code Generation* — Cassano et al. 2022, arXiv 2208.08227.

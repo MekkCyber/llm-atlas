@@ -34,6 +34,7 @@ This folder is about the *training-time* infrastructure: how compute is schedule
 
 - [Ray](ray.md)
 - [DualPipe](dualpipe.md)
+- [Partial Rollouts](partial-rollouts.md) — Kimi k1.5's long-context RL rollout infrastructure (async rollout workers, replay-buffer continuation, loss masking for stale segments).
 
 ---
 

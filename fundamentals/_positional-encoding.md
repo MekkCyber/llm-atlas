@@ -5,7 +5,7 @@
 **TL;DR:** Attention is permutation-equivariant — shuffle the tokens and you get the shuffled output. Models need position information injected explicitly. There are four main families (absolute, relative, rotary, bias-based), and modern LLMs have converged on rotary (RoPE) with interpolation tricks (YaRN, NTK-aware) for long context.
 
 **Related taxonomies:** *(none yet)*
-**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md)
+**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md) · [rope](rope.md)
 
 ---
 
@@ -30,12 +30,12 @@ Every positional-encoding scheme injects a signal that is a **function of positi
 | Technique | Family | Key idea | Main tradeoff | When it wins |
 | --- | --- | --- | --- | --- |
 | [Sinusoidal](sinusoidal-encoding.md) | Absolute | Fixed sin/cos of position added to embeddings | Limited length extrapolation | Historical reference; some length generalization vs. learned absolute |
-| Learned absolute | Absolute | Trainable vector per position | Cannot extrapolate past trained max length | Simple, historical (GPT-2 era) |
-| T5 relative bias | Relative | Learned scalar bias on attention logits based on distance | Bias is a learned lookup, bounded by training |  Encoder-decoder line (T5 family) |
-| RoPE | Rotary | Rotate Q and K by position-dependent angles | Rotation implements relative position implicitly | **Modern default** — LLaMA, Qwen, DeepSeek, Mistral |
-| ALiBi | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
-| YaRN / NTK-aware RoPE | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
-| LongRoPE | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
+| Learned absolute (no depth file yet) | Absolute | Trainable vector per position | Cannot extrapolate past trained max length | Simple, historical (GPT-2 era) |
+| T5 relative bias (no depth file yet) | Relative | Learned scalar bias on attention logits based on distance | Bias is a learned lookup, bounded by training |  Encoder-decoder line (T5 family) |
+| [RoPE](rope.md) | Rotary | Rotate Q and K by position-dependent angles | Rotation implements relative position implicitly | **Modern default** — LLaMA, Qwen, DeepSeek, Mistral, Kimi |
+| ALiBi (no depth file yet) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
+| YaRN / NTK-aware RoPE (covered in [rope](rope.md)) | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
+| LongRoPE (no depth file yet) | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
 
 ## How to choose
 
