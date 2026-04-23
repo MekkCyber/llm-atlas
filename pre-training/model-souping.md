@@ -4,7 +4,7 @@
 **TL;DR:** Train N models (different seeds, data orders, or fine-tuning recipes), then average their weights element-wise. The result often matches or beats any single model on validation loss and downstream benchmarks, for the cost of one extra optimizer call. Works because nearby minima in the loss landscape are **linearly connected** — a straight line between two trained checkpoints stays in low loss.
 
 **Prereqs:** [transformer-block](../architectures/transformer-block.md)
-**Related:** [mid-training](mid-training.md), [_lr-schedules](_lr-schedules.md), [olmo-2 case study](../case-studies/olmo-2.md)
+**Related:** [mid-training](mid-training.md), [_lr-schedules](_lr-schedules.md), [long2short](../post-training/reasoning/long2short.md), [olmo-2 case study](../case-studies/olmo-2.md), [kimi-k1-5 case study](../case-studies/kimi-k1-5.md)
 
 ---
 
@@ -48,6 +48,10 @@ OLMo 2 averages Stage-2 runs that share the Stage-1 base model but used differen
 
 Llama 3 reports similar practice, averaging final SFT candidates. The technique is now standard in large-lab releases.
 
+### Kimi k1.5's long-to-short merge
+
+Kimi k1.5 (2025) uses model merging as one of four methods to compress a long-CoT model into a short-CoT model (see [long2short](../post-training/reasoning/long2short.md)): weight-average a long-CoT checkpoint with a short-CoT base. Training-free. Reported as the **weakest of the four long2short methods** (Fig. 7) — long2short RL dominates — but it's the baseline the other methods are compared against, and it works cleanly when both sides share initialization. Specific instance of cross-recipe souping that the Wortsman paper cautions about: works because both endpoints fine-tuned from the same base.
+
 ## Why it matters
 
 - **Free quality.** The marginal cost is negligible compared to training any one candidate.
@@ -68,3 +72,4 @@ Llama 3 reports similar practice, averaging final SFT candidates. The technique 
 - Paper: *SWA: Averaging Weights Leads to Wider Optima and Better Generalization* — Izmailov et al., 2018 — the single-run precursor.
 - Paper: *2 OLMo 2 Furious* — AI2, 2024 — applies souping to Stage-2 runs.
 - Paper: *The Llama 3 Herd of Models* — Meta, 2024 — applies souping to SFT candidates.
+- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — uses model merging as one of four [long2short](../post-training/reasoning/long2short.md) methods for long-CoT → short-CoT compression.

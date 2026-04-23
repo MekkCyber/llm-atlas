@@ -5,7 +5,7 @@
 **TL;DR:** At its simplest: for each prompt, sample `K` responses from a model, score each, and **keep only the ones that pass some bar** (the verifier says it's correct; a reward model puts it above threshold; a judge model approves). Then SFT on the kept set. It's the cheap way to turn a partially-capable model into better training data — the model generates its own labels, you filter, you train. Used as a **self-improvement loop** in Llama 3 post-training and as **Stage 3** of the DeepSeek-R1 pipeline (the 800k-sample resample that turns R1-Zero-style RL traces into a legible SFT dataset).
 
 **Prereqs:** [_post-training](_post-training.md), [rlvr](rlvr.md)
-**Related:** [grpo](grpo.md), [orm](reasoning/orm.md), [deepseek-r1 case study](../case-studies/deepseek-r1.md)
+**Related:** [grpo](grpo.md), [orm](reasoning/orm.md), [long2short](reasoning/long2short.md), [deepseek-r1 case study](../case-studies/deepseek-r1.md), [kimi-k1-5 case study](../case-studies/kimi-k1-5.md)
 
 ---
 
@@ -104,7 +104,11 @@ The pivotal stage in the R1 pipeline. After reasoning-oriented RL produces a che
 
 The key structural pattern: **use RL to produce capability, use rejection sampling to produce legibility and coverage.** RL gets you a model that can solve the problems; rejection sampling gets you a dataset where every example is a *clean, correct* demonstration.
 
-### 3. Synthetic data pipelines
+### 3. Kimi k1.5's shortest-rejection-sampling for long2short
+
+A length-tiebreak variant: sample `n = 8` rollouts per prompt from a long-CoT model, filter to correct responses, keep the **shortest correct**, SFT on the result. Specifically targeted at compressing long-CoT capability into a short-CoT model — the filter is "correct", the tiebreak is `len(o)`. One of four methods Kimi compares for [long2short](reasoning/long2short.md); middle-of-the-pack quality, simplest to implement.
+
+### 4. Synthetic data pipelines
 
 Many synthetic-data pipelines (Orca, Phi, WizardMath, a dozen open recipes) are essentially rejection sampling with a judge model. A teacher generates candidate responses; a judge (often GPT-4 or Claude) scores them; the top-scoring set is used for SFT. Same structure, different roles.
 
@@ -137,3 +141,4 @@ Many synthetic-data pipelines (Orca, Phi, WizardMath, a dozen open recipes) are 
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — uses rejection sampling in Stage 3 (~600k reasoning + ~200k non-reasoning = ~800k SFT samples) off the Stage-2 RL checkpoint, driven by rule verifier + DeepSeek-V3 generative judge.
 - Paper: *Tülu 3: Pushing Frontiers in Open Language Model Post-Training* — AI2, 2024 — canonical open recipe, uses rejection sampling on SFT-completion stages.
 - Paper: *Training Verifiers to Solve Math Word Problems* — Cobbe et al., 2021 — early example of using a learned verifier to rerank/filter model outputs on GSM8K (see [orm](reasoning/orm.md)).
+- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — uses shortest-rejection-sampling (`n=8`, length-tiebreak) as one of four [long2short](reasoning/long2short.md) compression methods.

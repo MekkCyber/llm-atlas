@@ -136,3 +136,35 @@ Depth pages:
 *Primary-source papers cited in the depth files' `Sources` sections but not read as primary here — Shen 2023 (JailbreakHub), Kang 2023 (payload splitting), Yong 2023 (translation jailbreak), Greshake 2023 (indirect prompt injection), Zou 2023 (GCG), Arditi 2024 (refusal direction) — are references, not reads. Re-attribute any page if one of these is later read as a primary.*
 
 *Taxonomy pages ([safety/_attacks.md](safety/_attacks.md), [safety/_jailbreaks.md](safety/_jailbreaks.md)) are not listed above per the taxonomy-attribution rule.*
+
+---
+
+## 8. Kimi k1.5: Scaling Reinforcement Learning with LLMs
+
+Moonshot AI (Kimi Team), 2025 · *tech report — reasoning / long-CoT RL*
+
+Contemporaneous with DeepSeek-R1 (both January 2025); a different recipe for the same long-CoT RL problem. Frames RL as **online policy mirror descent** (an ℓ₂-regression surrogate on log policy ratios, derived from KL-regularized expected reward), adds an asymmetric **length-penalty** reward to fight overthinking, introduces **partial rollouts** for 128k-context RL efficiency, and explicitly handles **long2short distillation** via four methods. Multimodal (text + vision). Not open-weights; parameter counts and pretraining tokens deliberately undisclosed. Matches or approaches o1 on AIME 2024, MATH-500, Codeforces, LiveCodeBench.
+
+Depth pages:
+- [post-training/reasoning/online-policy-mirror-descent.md](post-training/reasoning/online-policy-mirror-descent.md) — the RL objective; KL-regularized expected reward, ℓ₂-regression surrogate, mean-reward baseline, no value net, no PPO clip.
+- [post-training/reasoning/length-penalty.md](post-training/reasoning/length-penalty.md) — group-relative ±0.5 linear length reward with asymmetric `min(0, λ)` floor for incorrect responses; warm-up schedule.
+- [post-training/reasoning/long2short.md](post-training/reasoning/long2short.md) — four methods (model merge, shortest rejection sampling, DPO, long2short RL) for compressing long-CoT into short-CoT.
+- [systems/partial-rollouts.md](systems/partial-rollouts.md) — long-context RL infrastructure: fixed per-iteration output budget, replay-buffer continuation, async rollout workers, loss masking for stale segments.
+- [post-training/cot-reward-model.md](post-training/cot-reward-model.md) — generative reward model that emits a reasoning trace + JSON judgment; 84.4% → 98.5% spot-check accuracy vs value-head RM on math. *Primary source also includes Zhang et al. 2024 "Generative Verifiers" (arXiv 2408.15240) — re-attribute if later read as primary.*
+- [post-training/rl-prompt-curation.md](post-training/rl-prompt-curation.md) — the four curation rules for RL prompt pools, including the "easy-to-hack" filter (drop prompts the model can guess without CoT within N=8 attempts).
+- [post-training/ppo.md](post-training/ppo.md) — [PREREQ, TRIGGER ONLY]. Primary source: Schulman et al. 2017 (arXiv 1707.06347); k1.5 triggered the page as a prereq for mirror descent. Re-attribute if PPO is later read as a primary.
+- [post-training/dpo.md](post-training/dpo.md) — [PREREQ, TRIGGER ONLY]. Primary source: Rafailov et al. 2023 (arXiv 2305.18290); k1.5 triggered the page as a prereq for the long2short DPO variant and because mirror descent and DPO share the same closed-form KL-regularized optimum. Re-attribute if DPO is later read as a primary.
+- [fundamentals/rope.md](fundamentals/rope.md) — [PREREQ, TRIGGER ONLY]. Primary source: Su et al. 2021 "RoFormer" (arXiv 2104.09864); k1.5 triggered the page because its long-context activation uses RoPE base = 1,000,000. Also covers extensions: Position Interpolation (Chen 2023), NTK-aware scaling (bloc97 Reddit), YaRN (Peng 2023), ABF. Re-attribute if RoFormer / PI / YaRN is later read as a primary.
+- [evaluation/aime.md](evaluation/aime.md) — [BENCHMARK, TRIGGER ONLY]. Live MAA competition, not a dataset with a paper. k1.5 reports AIME 2024 as its headline math result.
+- [evaluation/math500.md](evaluation/math500.md) — [BENCHMARK, TRIGGER ONLY]. Primary source: Lightman et al. 2023 (arXiv 2305.20050, "Let's Verify Step by Step"). Re-attribute if Lightman is later read as a primary.
+- [evaluation/mmlu.md](evaluation/mmlu.md) — [BENCHMARK, TRIGGER ONLY]. Primary source: Hendrycks et al. 2020 (arXiv 2009.03300).
+- [evaluation/livecodebench.md](evaluation/livecodebench.md) — [BENCHMARK, TRIGGER ONLY]. Primary source: Jain et al. 2024 (arXiv 2403.07974).
+- [evaluation/codeforces-benchmark.md](evaluation/codeforces-benchmark.md) — [BENCHMARK, TRIGGER ONLY]. Methodology, not a dataset. k1.5's Codeforces percentile comes from majority voting with model-generated test cases (Appendix C.2).
+- [evaluation/humaneval.md](evaluation/humaneval.md) — [BENCHMARK, TRIGGER ONLY]. Primary source: Chen et al. 2021 (Codex paper, arXiv 2107.03374). k1.5 reports HumanEval-Mul for short-CoT.
+- [evaluation/ifeval.md](evaluation/ifeval.md) — [BENCHMARK, TRIGGER ONLY]. Primary source: Zhou et al. 2023 (arXiv 2311.07911).
+
+Case study: [case-studies/kimi-k1-5.md](case-studies/kimi-k1-5.md).
+
+*Primary-source papers cited in the depth files' `Sources` sections but not read as primary here — Schulman 2017 (PPO), Rafailov 2023 (DPO), Su 2021 (RoPE), Chen 2023 (PI), Peng 2023 (YaRN), Rozière 2023 (Code Llama / ABF), Hendrycks 2020 (MMLU), Hendrycks 2021 (MATH), Lightman 2023 (MATH-500 / PRM800K), Chen 2021 (HumanEval / Codex), Jain 2024 (LiveCodeBench), Zhou 2023 (IFEval), Zhang 2024 (Generative Verifiers) — are references, not reads. Re-attribute any depth page if one of these is later read as a primary.*
+
+*Taxonomy pages (no new ones created in this extraction; existing [post-training/_rl.md](post-training/_rl.md) and [post-training/_rewards.md](post-training/_rewards.md) were updated) are not listed above per the taxonomy-attribution rule.*

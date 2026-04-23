@@ -5,7 +5,7 @@
 **TL;DR:** Every RL post-training recipe needs a way to score a response. The options fall into five families — **rule-based / verifiable**, **outcome reward model (ORM)**, **process reward model (PRM)**, **preference reward model**, and **shaping rewards** — and they differ in three axes: *correctness* (how often the signal is right), *cost* (compute per score), and *hackability* (how easy it is for the policy to game). The modern reasoning stack prefers the left end: use a rule verifier when you can, a learned RM only when you must.
 
 **Related taxonomies:** [_rl](_rl.md) · [_post-training](_post-training.md)
-**Depth files covered here:** [rlvr](rlvr.md) · [orm](reasoning/orm.md) · [prm](reasoning/prm.md)
+**Depth files covered here:** [rlvr](rlvr.md) · [orm](reasoning/orm.md) · [prm](reasoning/prm.md) · [cot-reward-model](cot-reward-model.md) · [length-penalty](reasoning/length-penalty.md)
 
 ---
 
@@ -81,6 +81,16 @@ See: [orm](reasoning/orm.md).
 
 See: [prm](reasoning/prm.md).
 
+### 3b. Chain-of-Thought Reward Model ([cot-reward-model](cot-reward-model.md))
+
+A learned RM whose output is a **generated reasoning trace + JSON judgment**, not a scalar head. Trained on the same correctness labels as an ORM; the generative format lets the verifier *reason about* the candidate response before judging. Kimi k1.5 reports **84.4% → 98.5%** spot-check accuracy going from a classic value-head RM to a CoT RM on math verification — a 14-point verifier-quality gap at the same training-set size.
+
+**Pros.** Near-rule-verifier accuracy inside the training distribution. Generalizes to fuzzy-verifiable tasks where rule verifiers don't apply. Easy to inspect (the generated CoT is debuggable).
+
+**Cons.** Expensive per call — one full CoT generation per candidate response. Multiplies rollout-verifier cost by 200×–1000×. Inherits LLM biases from the base model.
+
+See: [cot-reward-model](cot-reward-model.md).
+
 ### 4. Preference Reward Model (classical RLHF)
 
 **Signal:** learned LM trained on human pairwise preferences (A > B for prompt q). Scores whole responses by a scalar that is monotonic in preference.
@@ -103,8 +113,8 @@ Common examples:
 | --- | --- | --- |
 | Format reward | `+1` if response matches a required schema (XML tags, JSON) | R1-Zero, RLVR |
 | Language-consistency reward | Proportion of target-language words in CoT | R1 Stage 2 |
-| Length penalty | Reward decreases with excessive length | Various; careful |
-| Repetition penalty | Penalize n-gram repeats | Various |
+| **[Length penalty](reasoning/length-penalty.md)** | Group-relative linear `±0.5` reward; `min(0, λ)` floor for incorrect responses | Kimi k1.5 — fights overthinking in long-CoT RL |
+| Repetition penalty | Penalize n-gram repeats | Various (e.g., Kimi's [partial-rollouts](../systems/partial-rollouts.md) system) |
 
 **Pros.** Cheap, targeted, composable.
 
@@ -158,6 +168,8 @@ Additional rules of thumb:
 - Paper: *Math-Shepherd* — Wang et al., 2024 — automated step labels; PRM as PPO reward.
 - Paper: *Tülu 3* — AI2, 2024 — introduces the "RLVR" name and the rule-based reward recipe.
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — explicit choice of rule-based rewards over neural RMs; tried and rejected PRMs for RL.
+- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — introduces the asymmetric [length-penalty](reasoning/length-penalty.md) shaping reward and the [cot-reward-model](cot-reward-model.md) for math verification.
+- Paper: *Generative Verifiers: Reward Modeling as Next-Token Prediction* — Zhang et al., 2024, arXiv 2408.15240 — concurrent primary source for generative reward modeling.
 
 ---
 

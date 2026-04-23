@@ -105,4 +105,4 @@ The point worth internalizing: **long-CoT RL from base works**; SFT and shaping 
 
 - Paper: *DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning* — DeepSeek-AI, 2025, arXiv 2501.12948, *Nature* 645, 633–638 — introduces R1-Zero, the canonical long-CoT RL demonstration.
 - Paper: *DeepSeekMath* — Shao et al., 2024 — introduces [GRPO](../grpo.md), the policy-optimization algorithm used for R1-Zero.
-- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — contemporaneous long-CoT RL result with a different reward-shaping approach.
+- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025, arXiv 2501.12599 — contemporaneous long-CoT RL result using [online policy mirror descent](online-policy-mirror-descent.md) (an ℓ₂-regression sibling of GRPO) with an asymmetric [length-penalty](length-penalty.md) reward, [partial-rollouts](../../systems/partial-rollouts.md) infrastructure, and an explicit [long2short](long2short.md) distillation phase. See the [kimi-k1-5 case study](../../case-studies/kimi-k1-5.md) for the full pipeline and an R1↔k1.5 contrast table.

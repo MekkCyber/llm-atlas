@@ -18,6 +18,18 @@ This folder sits inside [post-training/](..) because most of the techniques *are
 
 - **[long-cot-rl](long-cot-rl.md)** — pure RL from a strong base grows long, reflective reasoning traces without any SFT demonstrations. R1-Zero's thesis. The generalizable recipe.
 
+### RL objectives for long-CoT
+
+- **[online-policy-mirror-descent](online-policy-mirror-descent.md)** — Kimi k1.5's RL objective. KL-regularized expected reward solved via an ℓ₂-regression surrogate; the principled sibling to [grpo](../grpo.md).
+
+### Reward shaping for long-CoT
+
+- **[length-penalty](length-penalty.md)** — the group-relative, asymmetric `±0.5` length reward that fights overthinking in long-CoT RL. From Kimi k1.5.
+
+### Distilling long-CoT into short-CoT
+
+- **[long2short](long2short.md)** — four methods (model merge, shortest rejection sampling, DPO, long2short RL) for compressing long-CoT capability into a token-efficient short-CoT model. From Kimi k1.5.
+
 ### Learned reward models for reasoning
 
 - **[orm](orm.md)** — outcome reward model. Trained on final-answer correctness labels. Used for best-of-N reranking and RL reward. Cobbe 2021 is the origin.
@@ -32,9 +44,12 @@ This folder sits inside [post-training/](..) because most of the techniques *are
 ## Reading Order
 
 1. [long-cot-rl](long-cot-rl.md) — the R1-Zero thesis; reasoning emerges from RL with outcome-only rewards on a strong base.
-2. [orm](orm.md) — the simplest learned reward model for reasoning.
-3. [prm](prm.md) — what PRMs are, why they sometimes beat ORMs for reranking, and why they struggle as RL rewards.
-4. [mcts](mcts.md) — tree-search-based reasoning, and why the R1 team rejected it.
+2. [online-policy-mirror-descent](online-policy-mirror-descent.md) — Kimi k1.5's mirror-descent derivation of the RL objective; pair with [grpo](../grpo.md) to see two algorithm choices for the same problem.
+3. [length-penalty](length-penalty.md) — the reward-shaping trick that stops long-CoT RL from overthinking.
+4. [long2short](long2short.md) — four methods for compressing long-CoT into short-CoT.
+5. [orm](orm.md) — the simplest learned reward model for reasoning.
+6. [prm](prm.md) — what PRMs are, why they sometimes beat ORMs for reranking, and why they struggle as RL rewards.
+7. [mcts](mcts.md) — tree-search-based reasoning, and why the R1 team rejected it.
 
 ---
 
@@ -44,4 +59,4 @@ This folder sits inside [post-training/](..) because most of the techniques *are
 - [../_rl](../_rl.md) — RL fundamentals that every depth file here assumes.
 - [../_rewards](../_rewards.md) — the full landscape of reward signals, including non-reasoning options.
 - [../../inference/](../../inference/) — test-time compute is also an inference problem.
-- [../../case-studies/](../../case-studies/) — [DeepSeek-R1](../../case-studies/deepseek-r1.md) is the canonical end-to-end reasoning-model case study.
+- [../../case-studies/](../../case-studies/) — [DeepSeek-R1](../../case-studies/deepseek-r1.md) and [Kimi k1.5](../../case-studies/kimi-k1-5.md) are the two canonical end-to-end long-CoT-reasoning case studies.
