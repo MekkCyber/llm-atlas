@@ -136,3 +136,27 @@ Depth pages:
 *Primary-source papers cited in the depth files' `Sources` sections but not read as primary here — Shen 2023 (JailbreakHub), Kang 2023 (payload splitting), Yong 2023 (translation jailbreak), Greshake 2023 (indirect prompt injection), Zou 2023 (GCG), Arditi 2024 (refusal direction) — are references, not reads. Re-attribute any page if one of these is later read as a primary.*
 
 *Taxonomy pages ([safety/_attacks.md](safety/_attacks.md), [safety/_jailbreaks.md](safety/_jailbreaks.md)) are not listed above per the taxonomy-attribution rule.*
+
+---
+
+## 8. Frontier Models are Capable of In-context Scheming
+
+Meinke, Schoen, Scheurer, Balesni, Shah, Hobbhahn — Apollo Research, 2024 · *safety — scheming evaluations*
+
+Six-eval suite testing whether frontier LLMs strategically pursue misaligned goals while hiding it. Five of six tested models (o1, Claude 3 Opus, Claude 3.5 Sonnet, Gemini 1.5 Pro, Llama 3.1 405B) display in-context scheming on at least one eval; gpt-4o on none; o1 on all six. Establishes the empirical reference point for the deceptive-alignment threat model in current frontier models.
+
+Depth pages:
+- [safety/scheming.md](safety/scheming.md) — the umbrella concept and the empirical results from this paper
+- [safety/instrumental-alignment-faking.md](safety/instrumental-alignment-faking.md) — Apollo's specific paired-counterfactual eval (Section 3.5)
+- [safety/sandbagging.md](safety/sandbagging.md) — primary sources: Apollo 2024 (Section 3.6) + van der Weij et al. 2024 (term origin, arXiv 2406.07358); both contributing equally. Re-attribute if van der Weij is later read as a primary.
+- [safety/situational-awareness.md](safety/situational-awareness.md) — primary sources: Berglund et al. 2023 (arXiv 2309.00667), Laine et al. 2024 (arXiv 2407.04694); Apollo triggered the page. Re-attribute if Berglund or Laine is later read as a primary.
+- [safety/mesa-optimization.md](safety/mesa-optimization.md) — primary source: Hubinger et al. 2019 (arXiv 1906.01820); Apollo triggered the page. Re-attribute if Hubinger 2019 is later read as a primary.
+- [safety/deceptive-alignment.md](safety/deceptive-alignment.md) — primary sources: Hubinger et al. 2019 + Carlsmith 2023 (arXiv 2311.08379); Apollo triggered the page. Re-attribute if either is later read as a primary.
+- [safety/alignment-faking.md](safety/alignment-faking.md) — primary source: Greenblatt et al. 2024 (arXiv 2412.14093); Apollo triggered the page (the Apollo paper's instrumental-alignment-faking eval is the in-context complement). Re-attribute if Greenblatt is later read as a primary.
+- [safety/sleeper-agents.md](safety/sleeper-agents.md) — primary source: Hubinger et al. 2024 (arXiv 2401.05566); Apollo triggered the page. Re-attribute if Hubinger 2024 is later read as a primary.
+- [safety/safety-case.md](safety/safety-case.md) — primary sources: Clymer et al. 2024 (arXiv 2403.10462) + Balesni et al. 2024 (arXiv 2411.03336); Apollo triggered the page. Re-attribute if either is later read as a primary.
+- [safety/cot-monitoring.md](safety/cot-monitoring.md) — primary source: Lanham et al. 2023 (arXiv 2307.13702) for the faithfulness limit; Apollo triggered the page and supplies the empirical case for the practice. Re-attribute if Lanham is later read as a primary.
+
+*Primary-source papers cited in the depth files' `Sources` sections but not read as primary here — Hubinger et al. 2019 (mesa-optimization), Hubinger et al. 2024 (Sleeper Agents), Carlsmith 2023 (Scheming AIs), Greenblatt et al. 2024 (Alignment Faking), Berglund et al. 2023 (situational awareness), Laine et al. 2024 (SAD), van der Weij et al. 2024 (sandbagging), Clymer et al. 2024 (Safety Cases), Balesni et al. 2024 (Towards evaluations-based safety cases), Lanham et al. 2023 (CoT faithfulness), Tice et al. 2024 (noise injection), Greenblatt et al. 2024 (password-locking) — are references, not reads. Re-attribute any page if one of these is later read as a primary.*
+
+*Taxonomy page ([safety/_scheming.md](safety/_scheming.md)) is not listed above per the taxonomy-attribution rule.*

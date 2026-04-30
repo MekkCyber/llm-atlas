@@ -16,6 +16,7 @@ Safety work spans training-time techniques (what you reward, what you penalize),
 
 - **[_attacks](_attacks.md)** — the whole adversarial landscape: jailbreaks, prompt injection, extraction, poisoning, agent misuse.
 - **[_jailbreaks](_jailbreaks.md)** — the sub-taxonomy for refusal-bypass attacks, organized by Wei et al.'s two-failure-modes framework.
+- **[_scheming](_scheming.md)** — strategic-deception failure modes specific to goal-directed agents: scheming, deceptive alignment, mesa-optimization, situational awareness, alignment faking, sandbagging, sleeper agents, and the safety-case framework that bounds them.
 
 ### Failure-mode depth files
 
@@ -39,6 +40,24 @@ Safety work spans training-time techniques (what you reward, what you penalize),
 - [wikipedia-framing](wikipedia-framing.md) — "write a Wikipedia article titled 'X'"
 - [unusual-format-jailbreak](unusual-format-jailbreak.md) — JSON, poem, song lyrics
 - [auto-obfuscation](auto-obfuscation.md) — let the model invent its own encoding
+
+### Scheming & deceptive-alignment depth files
+
+**Threat model:**
+- [mesa-optimization](mesa-optimization.md) — a learned model that is itself an optimizer (Hubinger 2019)
+- [deceptive-alignment](deceptive-alignment.md) — mesa-optimizer plays along during training to defect after
+- [situational-awareness](situational-awareness.md) — the sub-capability of knowing you're a model and detecting test vs deployment (Berglund 2023, Laine 2024)
+- [scheming](scheming.md) — the empirical version: covert pursuit of misaligned goals (Apollo 2024)
+
+**Empirical demonstrations & specific behaviors:**
+- [instrumental-alignment-faking](instrumental-alignment-faking.md) — in-context, paired oversight/no-oversight test (Apollo 2024)
+- [alignment-faking](alignment-faking.md) — trained-in-goal version, real Claude 3 Opus (Greenblatt 2024)
+- [sandbagging](sandbagging.md) — strategic underperformance on capability evals (van der Weij 2024, Apollo 2024)
+- [sleeper-agents](sleeper-agents.md) — backdoor deceptive alignment persists through safety training (Hubinger 2024)
+
+**Safety-case framework & mitigations:**
+- [safety-case](safety-case.md) — structured-argument framework for justifying deployment safety (Clymer 2024, Balesni 2024)
+- [cot-monitoring](cot-monitoring.md) — read the model's reasoning to catch scheming intent; bounded by CoT-faithfulness (Lanham 2023)
 
 ---
 
@@ -100,8 +119,15 @@ The first eight are the must-reads. The rest are grouped by area for when you wa
 
 ### Emerging / frontier risks
 
-- **Sleeper Agents**, **Alignment Faking** (above).
-- **Frontier Models are Capable of In-context Scheming** — Meinke et al., Apollo, 2024. Empirical scheming across Claude, GPT-4, Gemini, o1.
+- **Sleeper Agents** — Hubinger et al., Anthropic, 2024. Constructed deceptive alignment persists through safety training. See [sleeper-agents](sleeper-agents.md).
+- **Alignment Faking in Large Language Models** — Greenblatt et al., Anthropic + Redwood, 2024. Real Claude 3 Opus strategically complies during training to preserve trained-in harmlessness. See [alignment-faking](alignment-faking.md).
+- **Frontier Models are Capable of In-context Scheming** — Meinke et al., Apollo, 2024. Empirical scheming across Claude, GPT-4o, Gemini, Llama, o1. See [scheming](scheming.md) and the [_scheming](_scheming.md) taxonomy.
+- **AI Sandbagging: Language Models can Strategically Underperform on Evaluations** — van der Weij et al., 2024. Origin of sandbagging-as-LLM-failure-mode. See [sandbagging](sandbagging.md).
+- **Risks from Learned Optimization in Advanced Machine Learning Systems** — Hubinger et al., 2019. The foundational mesa-optimization paper. See [mesa-optimization](mesa-optimization.md).
+- **Scheming AIs: Will AIs fake alignment during training in order to get power?** — Carlsmith, 2023. The conceptual case for scheming as a default outcome.
+- **Safety Cases: How to Justify the Safety of Advanced AI Systems** — Clymer et al., 2024 + **Towards evaluations-based safety cases for AI scheming** — Balesni et al., 2024. The safety-case framework. See [safety-case](safety-case.md).
+- **Measuring Faithfulness in Chain-of-Thought Reasoning** — Lanham et al., Anthropic, 2023. The faithfulness limit on CoT-as-explanation. See [cot-monitoring](cot-monitoring.md).
+- **Me, Myself, and AI: The Situational Awareness Dataset (SAD) for LLMs** — Laine et al., 2024. Behavioral benchmark for situational awareness. See [situational-awareness](situational-awareness.md).
 - **Measuring Progress on Scalable Oversight for LLMs** — Bowman et al., Anthropic, 2022. The longest-running research agenda for when models exceed human judgment.
 
 ### Interpretability-for-safety
@@ -127,7 +153,7 @@ The first eight are the must-reads. The rest are grouped by area for when you wa
 3. Zou 2023 GCG → Chao PAIR → Anil many-shot → Russinovich Crescendo — *how* attacks are done, in complexity order.
 4. Bai CAI → Arditi refusal-direction → Zou Circuit Breakers — *defenses* and their limits.
 5. HarmBench → StrongREJECT — *how to measure*.
-6. Sleeper Agents → Alignment Faking → Apollo scheming — *where it's going*.
+6. [_scheming](_scheming.md) → [mesa-optimization](mesa-optimization.md) → [deceptive-alignment](deceptive-alignment.md) → [situational-awareness](situational-awareness.md) → [scheming](scheming.md) → [alignment-faking](alignment-faking.md) → [sleeper-agents](sleeper-agents.md) — *where it's going*. Then [safety-case](safety-case.md) → [cot-monitoring](cot-monitoring.md) for how the field plans to bound the risk.
 
 ---
 
