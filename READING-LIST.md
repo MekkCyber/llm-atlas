@@ -15,3 +15,4 @@ New papers are appended here as they're read — there is no forward-looking bac
 7. **Jailbroken: How Does LLM Safety Training Fail?** — Wei, Haghtalab, Steinhardt, 2023 · *safety — jailbreak taxonomy*
 8. **The Llama 3 Herd of Models** — Meta (Llama Team), 2024 · *tech report*
 9. **Frontier Models are Capable of In-context Scheming** — Meinke, Schoen, Scheurer, Balesni, Shah, Hobbhahn — Apollo Research, 2024 · *safety — scheming evaluations*
+8. **Kimi k1.5: Scaling Reinforcement Learning with LLMs** — Moonshot AI, 2025 · *tech report — reasoning / long-CoT RL*

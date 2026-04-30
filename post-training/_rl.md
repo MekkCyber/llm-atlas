@@ -5,7 +5,7 @@
 **TL;DR:** For LLMs, RL means: the model generates a response, a **reward** is assigned, and the policy is nudged to make high-reward responses more likely. The entire modern stack — **PPO, GRPO, DPO, RLVR, RLHF** — is variations on one equation (the policy gradient) with different answers to four questions: *what's the reward, how do we estimate the advantage, how do we keep the policy close to the starting point, and do we need a separate value network?* This taxonomy walks through those questions and the concepts each technique needs.
 
 **Related taxonomies:** [_post-training](_post-training.md) · [_rewards](_rewards.md)
-**Depth files covered here:** [grpo](grpo.md) · [rlvr](rlvr.md) · [long-cot-rl](reasoning/long-cot-rl.md) · [prm](reasoning/prm.md) · [orm](reasoning/orm.md)
+**Depth files covered here:** [ppo](ppo.md) · [grpo](grpo.md) · [dpo](dpo.md) · [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md) · [rlvr](rlvr.md) · [long-cot-rl](reasoning/long-cot-rl.md) · [prm](reasoning/prm.md) · [orm](reasoning/orm.md)
 
 ---
 
@@ -203,12 +203,13 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | Technique | Reward source | Advantage estimator | Clip/trust region | Needs value net? | When it wins |
 | --- | --- | --- | --- | --- | --- |
 | **REINFORCE** | Any scalar | Raw return | None | No | Toy/historical |
-| **PPO** (classical RLHF) | Learned preference RM | Value-network baseline | PPO clip | Yes | General RLHF; still used at frontier labs |
-| **[GRPO](grpo.md)** | Any scalar | Group-relative (K rollouts) | PPO clip | **No** | Modern default for reasoning RL / verifiable rewards |
-| **[RLVR](rlvr.md)** | Rule-based verifier | GRPO- or PPO-style | Either | No (typically GRPO) | Math, code, format — anywhere correctness is checkable |
-| **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO group | PPO clip | No | Eliciting reasoning from a strong base without CoT SFT |
-| **DPO** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
-| **KTO / IPO** | Unary or noisy preferences | DPO-variant | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[PPO](ppo.md)** (classical RLHF) | Learned preference RM | Value-network baseline | PPO clip | Yes | General RLHF; still used at frontier labs |
+| **[GRPO](grpo.md)** | Any scalar | Group-relative (K rollouts, z-score) | PPO clip | **No** | Modern default for reasoning RL / verifiable rewards |
+| **[Online policy mirror descent](reasoning/online-policy-mirror-descent.md)** | Any scalar | Group-relative (K rollouts, mean only) | ℓ₂ on log-ratios (no clip) | No | Kimi k1.5's long-CoT RL; principled-derivation alternative to GRPO |
+| **[RLVR](rlvr.md)** | Rule-based verifier | GRPO- or mirror-descent-style | Either | No | Math, code, format — anywhere correctness is checkable |
+| **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or ℓ₂ | No | Eliciting reasoning from a strong base without CoT SFT |
+| **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
+| **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
@@ -216,8 +217,8 @@ All of these are the same policy-gradient skeleton with different specialization
 
 ## How to choose
 
-- **You have a verifier (math, code, format)** → [GRPO + RLVR](rlvr.md). It's the cheapest, most stable, hardest-to-hack option. Works from a strong SFT checkpoint or (for [long-CoT RL](reasoning/long-cot-rl.md)) from the base directly.
-- **You have pairwise preferences, no interactive RM** → DPO. No rollouts needed, one big offline pass.
+- **You have a verifier (math, code, format)** → [GRPO + RLVR](rlvr.md), or the mirror-descent alternative [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md). Cheapest, most stable, hardest-to-hack. Works from a strong SFT checkpoint or (for [long-CoT RL](reasoning/long-cot-rl.md)) from the base directly.
+- **You have pairwise preferences, no interactive RM** → [DPO](dpo.md). No rollouts needed, one big offline pass.
 - **You need open-ended helpfulness/tone shaping at scale** → Preference RM + PPO (classical RLHF). Still used by the frontier labs; rare in new open pipelines because DPO is simpler.
 - **You have step-level labels for reasoning** → Consider a [PRM](reasoning/prm.md) used as a reranker (best-of-N). Using a PRM as a dense RL reward is brittle (see [prm](reasoning/prm.md) for why R1 abandoned it).
 - **Small-model reasoning** → Skip RL, do **distillation SFT** from a larger reasoner's traces. R1's own experiments show this beats running RL directly on small models.

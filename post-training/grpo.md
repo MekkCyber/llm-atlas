@@ -3,8 +3,8 @@
 
 **TL;DR:** A simplified PPO variant that removes the value (critic) network. For each prompt, sample `G` responses from the current policy, compute each response's reward, then use the **group's mean and standard deviation as a baseline** to normalize advantages. The rest of the update is standard PPO — clipped ratio with a KL penalty toward a reference model. Introduced in DeepSeekMath (2024), now the default policy-optimization algorithm for reasoning RL and RLVR pipelines.
 
-**Prereqs:** basic RL (policy gradients, PPO), KL divergence — see [_rl](_rl.md) for a walk-through.
-**Related:** [rlvr](rlvr.md) · [long-cot-rl](reasoning/long-cot-rl.md) · [_rewards](_rewards.md) · [deepseek-r1 case study](../case-studies/deepseek-r1.md)
+**Prereqs:** [ppo](ppo.md), [_rl](_rl.md) (policy gradients, KL divergence).
+**Related:** [rlvr](rlvr.md) · [long-cot-rl](reasoning/long-cot-rl.md) · [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md) · [dpo](dpo.md) · [_rewards](_rewards.md) · [deepseek-r1 case study](../case-studies/deepseek-r1.md) · [kimi-k1-5 case study](../case-studies/kimi-k1-5.md)
 
 ---
 
@@ -129,4 +129,10 @@ GRPO as written assigns the same `A_i` to every token of response `o_i`. This is
 - Paper: *DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models* — Shao et al., DeepSeek, 2024 — introduces GRPO.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — applies GRPO with hybrid rule-based + model-based rewards.
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale reasoning RL using GRPO with verifiable rewards; R1-Zero uses GRPO from base with no SFT, R1 uses GRPO in Stages 2 and 4 of a 4-stage pipeline.
-- Paper: *Proximal Policy Optimization Algorithms* — Schulman et al., 2017 — the PPO baseline GRPO simplifies.
+- Paper: *Proximal Policy Optimization Algorithms* — Schulman et al., 2017 — the PPO baseline GRPO simplifies. See [ppo](ppo.md).
+
+---
+
+## Mirror-descent sibling
+
+**Kimi k1.5** (2025) derives a closely-related algorithm from a different starting point: KL-regularized expected-reward RL solved iteratively via mirror descent, with an ℓ₂-regression surrogate on log policy ratios instead of PPO's clipped ratio. Both algorithms are value-network-free and use a group-mean reward baseline; they differ in surrogate form (**ℓ₂ regression** vs **clipped PPO ratio**), baseline normalization (**mean only** vs **z-score**), and reference-update schedule (**per-iteration with optimizer reset** vs **rolling**). The two can be viewed as two design points in the same family — see [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md) for the full math and the GRPO↔mirror-descent contrast table.
