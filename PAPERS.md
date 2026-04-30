@@ -139,7 +139,84 @@ Depth pages:
 
 ---
 
-## 8. Frontier Models are Capable of In-context Scheming
+## 8. The Llama 3 Herd of Models
+
+Meta (Llama Team), 2024 · *tech report*
+
+The canonical production-recipe paper for frontier-scale dense models: 8B / 70B / **405B** dense Transformers, 15.6T tokens, 3.8 × 10²⁵ FLOPs on 16K H100s. Three design levers: **data, scale, managing complexity** (dense over MoE, DPO over PPO). Detailed documentation of 4D parallelism, downstream-scaling-law methodology, 6-round iterative post-training, capability experts for SFT data generation, multi-layer safety stack (Llama Guard / Prompt Guard / Code Shield), compositional multimodal (not released in v1). First open model at frontier parity with GPT-4.
+
+### Depth pages extracted (architectural + infrastructure)
+
+- [architectures/gqa.md](architectures/gqa.md) — GQA with 8 KV heads. [PREREQ, TRIGGER ONLY]. Primary source: Ainslie 2023 (arXiv 2305.13245); Llama 3 is the canonical large-scale deployment.
+- [architectures/intra-document-mask.md](architectures/intra-document-mask.md) — document-boundary attention masking in packed sequences. [PRIMARY for Llama 3's deployment], though the idea predates Llama 3.
+- [fundamentals/rope.md](fundamentals/rope.md) — already existed; Llama 3 reinforces via ABF scaling to θ=500,000.
+
+### Depth pages extracted (parallelism — all new)
+
+- [pre-training/_parallelism.md](pre-training/_parallelism.md) — taxonomy of TP/PP/DP/FSDP/CP/SP/EP.
+- [pre-training/data-parallelism.md](pre-training/data-parallelism.md) — DDP basics. [TRIGGER ONLY]; canonical refs Li 2020, Horovod 2018.
+- [pre-training/fsdp.md](pre-training/fsdp.md) — ZeRO / FSDP. [TRIGGER ONLY]; canonical refs Rajbhandari 2020, Zhao 2023. Llama 3 uses hybrid sharding + no-reshard-after-forward.
+- [pre-training/tensor-parallelism.md](pre-training/tensor-parallelism.md) — Megatron TP with f/g operators. [TRIGGER ONLY]; canonical ref Shoeybi 2019. Llama 3 uses TP=8 within server.
+- [pre-training/pipeline-parallelism.md](pre-training/pipeline-parallelism.md) — GPipe, PipeDream 1F1B, Interleaved 1F1B. [TRIGGER ONLY]; canonical refs Huang 2019, Harlap 2018, Narayanan 2021. Llama 3 uses modified interleaved with tunable N + rebalanced first/last stages.
+- [pre-training/context-parallelism.md](pre-training/context-parallelism.md) — Ring Attention + Llama 3's all-gather CP variant. [PRIMARY for all-gather variant] (Llama 3); Liu 2023 primary for Ring.
+- [pre-training/sequence-parallelism.md](pre-training/sequence-parallelism.md) — Megatron-SP (shard LN/Dropout activations along seq). [TRIGGER ONLY]; primary source Korthikanti 2022.
+- [pre-training/expert-parallelism.md](pre-training/expert-parallelism.md) — MoE all-to-all dispatch. [TRIGGER ONLY]; primary source Lepikhin 2020 (GShard). Included as part of the parallelism family.
+- [systems/_communication-primitives.md](systems/_communication-primitives.md) — all-reduce / all-gather / reduce-scatter / broadcast / all-to-all / Send/Recv taxonomy.
+
+### Depth pages extracted (scaling laws)
+
+- [pre-training/chinchilla-scaling.md](pre-training/chinchilla-scaling.md) — [TRIGGER ONLY, PREREQ]; primary source Hoffmann 2022.
+- [pre-training/downstream-scaling-laws.md](pre-training/downstream-scaling-laws.md) — Llama 3's two-stage compute → NLL → accuracy methodology. [PRIMARY].
+- [pre-training/annealing-as-data-eval.md](pre-training/annealing-as-data-eval.md) — 50%-trained 8B + 40B-token anneal for candidate-dataset scoring. [PRIMARY].
+
+### Depth pages extracted (data + post-training)
+
+- [data/data-mix.md](data/data-mix.md) — Llama 3's ~50/25/17/8 and scaling-law methodology for mix choice. [PRIMARY for the methodology].
+- [post-training/reward-modeling.md](post-training/reward-modeling.md) — BT loss + Llama 3 modifications (drop margin term, three-way edited, concat-and-shuffle). [TRIGGER + PRIMARY for Llama 3's modifications]; canonical ref Ouyang 2022.
+- [post-training/capability-experts.md](post-training/capability-experts.md) — branch pretraining → domain-heavy continuation → SFT data generator. [PRIMARY].
+- [post-training/knowledge-probe-hallucination.md](post-training/knowledge-probe-hallucination.md) — automated factuality pipeline. [PRIMARY]; builds on Gekhman 2024, Mielke 2020.
+
+### Depth pages extracted (safety)
+
+- [safety/llama-guard.md](safety/llama-guard.md) — fine-tuned Llama 3 8B safety classifier. [PRIMARY for Llama Guard 3]; canonical ref Inan 2023.
+- [safety/prompt-guard.md](safety/prompt-guard.md) — 86M mDeBERTa jailbreak/injection detector. [PRIMARY].
+- [safety/code-shield.md](safety/code-shield.md) — static-analysis insecure-code detector. [PRIMARY].
+- [safety/rainbow-teaming.md](safety/rainbow-teaming.md) — MAP-Elites adversarial-prompt generation. [TRIGGER ONLY]; primary source Samvelyan 2024.
+- [safety/uplift-evaluation.md](safety/uplift-evaluation.md) — CBRN + cyber uplift-study methodology. [PRIMARY for Llama 3's specific protocol].
+
+### Depth pages extracted (multimodal — new subfolders)
+
+- [multimodal/_multimodal-fusion.md](multimodal/_multimodal-fusion.md) — taxonomy of integration patterns.
+- [multimodal/vision/vit.md](multimodal/vision/vit.md) — [TRIGGER ONLY]; primary source Dosovitskiy 2020.
+- [multimodal/vision/clip.md](multimodal/vision/clip.md) — [TRIGGER ONLY]; primary source Radford 2021.
+- [multimodal/vision/siglip.md](multimodal/vision/siglip.md) — [TRIGGER ONLY]; primary source Zhai 2023.
+- [multimodal/vision/metaclip.md](multimodal/vision/metaclip.md) — [TRIGGER ONLY]; primary source Xu 2024.
+- [multimodal/vision/cross-attention-adapter.md](multimodal/vision/cross-attention-adapter.md) — Flamingo pattern. [TRIGGER + concrete instance at 405B scale]; primary source Alayrac 2022.
+- [multimodal/vision/q-former.md](multimodal/vision/q-former.md) — [TRIGGER ONLY]; primary source Li 2023 (BLIP-2).
+- [multimodal/vision/llava.md](multimodal/vision/llava.md) — [TRIGGER ONLY]; primary sources Liu 2023a, 2023b.
+- [multimodal/audio/mel-spectrogram.md](multimodal/audio/mel-spectrogram.md) — [TRIGGER ONLY]; standard signal-processing reference.
+- [multimodal/audio/conformer.md](multimodal/audio/conformer.md) — [TRIGGER ONLY]; primary source Gulati 2020.
+- [multimodal/audio/whisper.md](multimodal/audio/whisper.md) — [TRIGGER ONLY]; primary source Radford 2022.
+- [multimodal/audio/best-rq.md](multimodal/audio/best-rq.md) — [TRIGGER ONLY]; primary source Chiu 2022. Used by Llama 3 speech encoder.
+- [multimodal/audio/wav2vec2.md](multimodal/audio/wav2vec2.md) — [TRIGGER ONLY]; primary source Baevski 2020.
+- [multimodal/audio/hubert.md](multimodal/audio/hubert.md) — [TRIGGER ONLY]; primary source Hsu 2021.
+
+### Depth pages extracted (evaluation)
+
+- [evaluation/mmlu-pro.md](evaluation/mmlu-pro.md) — [TRIGGER ONLY]; primary source Wang 2024.
+- [evaluation/gpqa.md](evaluation/gpqa.md) — [TRIGGER ONLY]; primary source Rein 2023.
+- [evaluation/bfcl.md](evaluation/bfcl.md) — [TRIGGER ONLY]; primary source Yan et al. 2024.
+- [evaluation/mgsm.md](evaluation/mgsm.md) — [TRIGGER ONLY]; primary source Shi 2023.
+
+Case study: [case-studies/llama-3.md](case-studies/llama-3.md).
+
+*Primary-source papers cited in the depth files' `Sources` sections but not read as primary here — Shoeybi 2019 (Megatron), Rajbhandari 2020 (ZeRO), Zhao 2023 (FSDP), Huang 2019 (GPipe), Harlap 2018 (PipeDream), Narayanan 2021 (Megatron-2), Korthikanti 2022 (Megatron-SP), Liu 2023 (Ring Attention), Lepikhin 2020 (GShard), Hoffmann 2022 (Chinchilla), Ouyang 2022 (InstructGPT), Ainslie 2023 (GQA), Dosovitskiy 2020 (ViT), Radford 2021 (CLIP), Zhai 2023 (SigLIP), Xu 2024 (MetaCLIP), Alayrac 2022 (Flamingo), Li 2023 (BLIP-2), Liu 2023a/b (LLaVA), Gulati 2020 (Conformer), Radford 2022 (Whisper), Chiu 2022 (BEST-RQ), Baevski 2020 (wav2vec 2.0), Hsu 2021 (HuBERT), Wang 2024 (MMLU-Pro), Rein 2023 (GPQA), Yan 2024 (BFCL), Shi 2023 (MGSM), Samvelyan 2024 (Rainbow Teaming), Inan 2023 (Llama Guard 1) — are references, not reads. Re-attribute any depth page if one of these is later read as a primary.*
+
+*Taxonomy pages created alongside this paper ([pre-training/_parallelism.md](pre-training/_parallelism.md), [systems/_communication-primitives.md](systems/_communication-primitives.md), [multimodal/_multimodal-fusion.md](multimodal/_multimodal-fusion.md)) are not listed above per the taxonomy-attribution rule.*
+
+---
+
+## 9. Frontier Models are Capable of In-context Scheming
 
 Meinke, Schoen, Scheurer, Balesni, Shah, Hobbhahn — Apollo Research, 2024 · *safety — scheming evaluations*
 
