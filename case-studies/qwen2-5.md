@@ -2,7 +2,7 @@
 
 *Alibaba's dense + MoE model family spanning 0.5B to 72B (dense) plus proprietary MoE variants (Turbo, Plus). The interesting story is not a single architectural breakthrough — it's a methodical scaling of data (7T → 18T tokens), a comprehensive post-training pipeline (SFT → DPO → GRPO), and strong results across the full size range. The report is notably less transparent than DeepSeek-V3 on infrastructure and architecture internals, but provides the most detailed open post-training recipe of the Qwen series.*
 
-**Related concepts:** [grpo.md](./../post-training/grpo.md) · [dpo.md](./../post-training/dpo.md) · [rope.md](./../fundamentals/rope.md) · [bpe.md](./../fundamentals/bpe.md) · [qk-norm.md](./../architectures/qk-norm.md) · [multi-head-attention.md](./../architectures/multi-head-attention.md) · [rejection-sampling.md](./../post-training/rejection-sampling.md)
+**Related concepts:** [grpo.md](./../post-training/grpo.md) · [dpo.md](./../post-training/dpo.md) · [rope.md](./../fundamentals/rope.md) · [dca.md](./../fundamentals/dca.md) · [bpe.md](./../fundamentals/bpe.md) · [qk-norm.md](./../architectures/qk-norm.md) · [multi-head-attention.md](./../architectures/multi-head-attention.md) · [rejection-sampling.md](./../post-training/rejection-sampling.md)
 
 ---
 

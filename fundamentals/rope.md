@@ -3,8 +3,8 @@
 
 **TL;DR:** Instead of adding a position signal to the token embedding (sinusoidal), **rotate** the query and key vectors by a position-dependent angle before the attention dot product. Pairs of dimensions $(2i-1, 2i)$ are rotated by $m \cdot \theta_i$, with $\theta_i = \mathrm{base}^{-2i/d}$ and $\mathrm{base} = 10000$. Because rotating $q$ by $m\theta$ and $k$ by $n\theta$ leaves the dot product as a function of $(n-m)\theta$, **relative position is encoded implicitly** — you keep the absolute API (one function per token) but get relative semantics for free. No parameters added. Plays well with Flash Attention, linear attention, GQA/MQA. Extensible after training via position interpolation, NTK-aware scaling, YaRN, and base-frequency scaling — which is why every modern LLM (Llama, Qwen, DeepSeek, Mistral, Gemma, PaLM, Kimi) uses it.
 
-**Prereqs:** [attention](attention.md), [sinusoidal-encoding](sinusoidal-encoding.md)
-**Related:** [_positional-encoding](_positional-encoding.md) · [multi-head-attention](../architectures/multi-head-attention.md)
+**Prereqs:** [attention.md](./attention.md), [sinusoidal-encoding.md](./sinusoidal-encoding.md)
+**Related:** [_positional-encoding.md](./_positional-encoding.md) · [multi-head-attention.md](./../architectures/multi-head-attention.md) · [dca.md](./dca.md)
 
 ---
 
@@ -78,7 +78,7 @@ $$
 (q_m^{\text{rotated}})^\top \cdot k_n^{\text{rotated}} = (R(m) W_q x_m)^\top (R(n) W_k x_n) = x_m^\top W_q^\top \cdot R(m)^\top R(n) \cdot W_k x_n = x_m^\top W_q^\top \cdot R(n - m) \cdot W_k x_n
 $$
 
-The absolute positions $m$ and $n$ dropped out. The attention score depends on $(x_m, x_n)$ and the **gap $(n - m)$** — never on $m$ and $n$ individually. This is the whole point.
+The absolute positions $m$ and $n$ dropped out. The attention score depends on $(x_m, x_n)$ and the **gap** $(n - m)$ — never on $m$ and $n$ individually. This is the whole point.
 
 ### Efficient implementation
 
@@ -136,7 +136,7 @@ absorbed into the cos/sin tables so runtime is unchanged. Matches PI with **10×
 
 ### 4. Base-frequency scaling (ABF)
 
-Simplest: pick a much larger base. Code Llama used $\mathrm{base} = 1{,}000{,}000$ (2023). Llama 3 uses $\mathrm{base} = 500{,}000$ (2024). Kimi k1.5 uses $\mathrm{base} = 1{,}000{,}000$ during long-context activation (see the [Kimi k1.5 case study](../case-studies/kimi-k1-5.md)). Mathematically equivalent to NTK-aware scaling with a specific $s$. Popular because it's a one-line change to the model config.
+Simplest: pick a much larger base. Code Llama used $\mathrm{base} = 1{,}000{,}000$ (2023). Llama 3 uses $\mathrm{base} = 500{,}000$ (2024). Kimi k1.5 uses $\mathrm{base} = 1{,}000{,}000$ during long-context activation (see the [kimi-k1-5.md](./../case-studies/kimi-k1-5.md)). Mathematically equivalent to NTK-aware scaling with a specific $s$. Popular because it's a one-line change to the model config.
 
 Which one to use: PI or YaRN with a short adapter fine-tune for best quality; ABF / NTK-aware for zero- or minimal-fine-tune extension. YaRN is the current state-of-the-art for large context extension (e.g., 8k → 128k).
 
