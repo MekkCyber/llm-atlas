@@ -1,7 +1,7 @@
 # QK-Norm
 *Depth — normalize queries and keys before the attention dot product.*
 
-**TL;DR:** Apply RMSNorm to Q and K inside the attention block, after the projections but before `softmax(QKᵀ / √d)`. Bounds attention-logit magnitudes, which would otherwise drift upward at depth and at long training horizons, saturating softmax and collapsing gradients. Cheap, effective, now standard in stability-conscious LLMs.
+**TL;DR:** Apply RMSNorm to Q and K inside the attention block, after the projections but before $\mathrm{softmax}(QK^\top / \sqrt{d})$. Bounds attention-logit magnitudes, which would otherwise drift upward at depth and at long training horizons, saturating softmax and collapsing gradients. Cheap, effective, now standard in stability-conscious LLMs.
 
 **Prereqs:** [attention](../fundamentals/attention.md), [multi-head-attention](multi-head-attention.md), [transformer-block](transformer-block.md)
 **Related:** [reordered-norm](reordered-norm.md), [z-loss](../fundamentals/z-loss.md), [_normalization](_normalization.md), [_training-stability](../pre-training/_training-stability.md), [olmo-2 case study](../case-studies/olmo-2.md)
@@ -23,17 +23,17 @@ A = softmax(Q @ K.T / √d_head)
 out = A @ V
 ```
 
-No change to the shapes, no learned mixing across heads. Two extra RMSNorm modules per block (one for Q, one for K), each with `d_head` learned scale parameters per head.
+No change to the shapes, no learned mixing across heads. Two extra RMSNorm modules per block (one for Q, one for K), each with $d_{\text{head}}$ learned scale parameters per head.
 
 ## How it works
 
-The instability it fixes: during long training runs of deep models, the magnitudes of Q and K entries can drift upward (nothing explicitly penalizes them). When `‖Q‖ · ‖K‖` grows, the pre-softmax logits grow, and softmax becomes increasingly sharp — assigning probability ≈ 1 to a single token. The gradient of softmax at saturation is near-zero. The attention layer stops learning; downstream layers stop getting useful signal; loss spikes and the run dies.
+The instability it fixes: during long training runs of deep models, the magnitudes of Q and K entries can drift upward (nothing explicitly penalizes them). When $\|Q\| \cdot \|K\|$ grows, the pre-softmax logits grow, and softmax becomes increasingly sharp — assigning probability $\approx 1$ to a single token. The gradient of softmax at saturation is near-zero. The attention layer stops learning; downstream layers stop getting useful signal; loss spikes and the run dies.
 
-QK-norm bounds `‖Q‖` and `‖K‖` to the learned RMSNorm scale. Since RMSNorm rescales to unit RMS (up to the learned scale γ), the product `‖Q‖ · ‖K‖` is held in a controlled range, keeping softmax at a usable temperature throughout training.
+QK-norm bounds $\|Q\|$ and $\|K\|$ to the learned RMSNorm scale. Since RMSNorm rescales to unit RMS (up to the learned scale $\gamma$), the product $\|Q\| \cdot \|K\|$ is held in a controlled range, keeping softmax at a usable temperature throughout training.
 
 **Per-head is important.** Norming across heads (pre-split) would couple heads' magnitudes, partly defeating multi-head independence. Per-head RMSNorm preserves head specialization while still bounding each one.
 
-**RoPE after QK-norm.** RoPE is a rotation, so it preserves norm. Applying RMSNorm then RoPE is equivalent in L2-norm to RoPE then RMSNorm, but the first ordering matches what every recent paper uses and avoids worrying about implementation details of complex-valued norms.
+**RoPE after QK-norm.** RoPE is a rotation, so it preserves norm. Applying RMSNorm then RoPE is equivalent in $L_2$-norm to RoPE then RMSNorm, but the first ordering matches what every recent paper uses and avoids worrying about implementation details of complex-valued norms.
 
 ## Why it matters
 
@@ -45,8 +45,8 @@ QK-norm bounds `‖Q‖` and `‖K‖` to the learned RMSNorm scale. Since RMSNo
 ## Gotchas & tricks
 
 - **Place it in the right spot.** After Q/K projection and head reshape, before RoPE and the dot product. Putting it before the projection does nothing useful; putting it after the softmax is wrong.
-- **Per-head RMSNorm, not per-token.** The norm is over the `d_head` feature dimension, per (batch, head, token). Sharing the scale across heads is a small quality hit.
-- **γ initialization.** Start the RMSNorm scale at 1.0 — attention learns fine from that init. No need for fancy schemes.
+- **Per-head RMSNorm, not per-token.** The norm is over the $d_{\text{head}}$ feature dimension, per (batch, head, token). Sharing the scale across heads is a small quality hit.
+- **$\gamma$ initialization.** Start the RMSNorm scale at 1.0 — attention learns fine from that init. No need for fancy schemes.
 - **Interaction with FlashAttention.** Most FlashAttention implementations accept pre-normed Q and K transparently. Just compute `q_norm = rmsnorm(q); k_norm = rmsnorm(k)` before calling the kernel.
 - **Not a substitute for warmup.** Still use warmup. QK-norm prevents slow drift over thousands of steps, not the large gradients of the first few steps.
 

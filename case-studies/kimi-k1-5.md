@@ -109,7 +109,7 @@ max_θ  E_{(x, y*) ~ D} [
 ]
 ```
 
-Where `π_{θ_i}` is the reference policy at iteration `i`. The reference is **updated each iteration**; the optimizer state is reset accordingly.
+Where $\pi_{\theta_i}$ is the reference policy at iteration $i$. The reference is **updated each iteration**; the optimizer state is reset accordingly.
 
 ### Gibbs-Boltzmann optimum
 
@@ -117,7 +117,7 @@ Where `π_{θ_i}` is the reference policy at iteration `i`. The reference is **u
 π*(y, z | x)  ∝  π_{θ_i}(y, z | x) · exp( r(x, y, y*) / τ )
 ```
 
-Taking logs gives an identity relating the centered reward to `τ · log(π_θ / π_{θ_i})`.
+Taking logs gives an identity relating the centered reward to $\tau \cdot \log(\pi_\theta / \pi_{\theta_i})$.
 
 ### ℓ₂-regression surrogate
 
@@ -125,7 +125,7 @@ Taking logs gives an identity relating the centered reward to `τ · log(π_θ /
 L(θ) = E [ ( r(x, y, y*) − τ log Z(x) − τ · log(π_θ(y,z|x)/π_{θ_i}(y,z|x)) )^2 ]
 ```
 
-Rollouts sampled from the reference `π_{θ_i}`. In practice, `τ log Z(x)` is approximated by the **empirical mean reward** `r̄` over the group of `k` rollouts (like GRPO, minus the std normalization).
+Rollouts sampled from the reference $\pi_{\theta_i}$. In practice, $\tau \log Z(x)$ is approximated by the **empirical mean reward** $\bar{r}$ over the group of $k$ rollouts (like GRPO, minus the std normalization).
 
 ### The gradient (Eq. 3)
 

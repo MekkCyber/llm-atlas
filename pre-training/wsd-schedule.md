@@ -12,15 +12,11 @@
 
 Three phases with trivial math:
 
-```
-LR(step) =
-    peak * (step / warmup_steps)                          if step < warmup_steps
-    peak                                                  if warmup_steps ≤ step < decay_start
-    peak * decay_fn((step - decay_start) / decay_steps)   if decay_start ≤ step < end
-    0                                                     otherwise
-```
+$$
+\mathrm{LR}(\text{step}) = \begin{cases} \mathrm{peak} \cdot \dfrac{\text{step}}{\mathrm{warmup\_steps}} & \text{if step} < \mathrm{warmup\_steps} \\[1ex] \mathrm{peak} & \text{if } \mathrm{warmup\_steps} \le \text{step} < \mathrm{decay\_start} \\[1ex] \mathrm{peak} \cdot \mathrm{decay\_fn}\!\left( \dfrac{\text{step} - \mathrm{decay\_start}}{\mathrm{decay\_steps}} \right) & \text{if } \mathrm{decay\_start} \le \text{step} < \text{end} \\[1ex] 0 & \text{otherwise} \end{cases}
+$$
 
-where `decay_fn` is typically linear (`1 - t`) or 1-√t or cosine. No hyperparameter for "how sharp is the cosine" — you just pick the start and end points of the decay.
+where $\mathrm{decay\_fn}$ is typically linear ($1 - t$) or $1 - \sqrt{t}$ or cosine. No hyperparameter for "how sharp is the cosine" — you just pick the start and end points of the decay.
 
 Typical proportions:
 
@@ -100,9 +96,9 @@ MiniCPM uses this to make their "start small, scale up when the recipe works" wo
 
 ## Gotchas & tricks
 
-- **Don't reset the optimizer at phase boundaries.** Adam's m, v state carries over from warmup to stable to decay. Resetting optimizer state at the decay boundary throws away useful curvature info and usually costs a few points.
+- **Don't reset the optimizer at phase boundaries.** Adam's $m$, $v$ state carries over from warmup to stable to decay. Resetting optimizer state at the decay boundary throws away useful curvature info and usually costs a few points.
 - **Stable LR should be a "peak that you can sustain".** The same LR that is slightly too-high for cosine (causing occasional spikes) is very much too-high for stable, because you sit at that value for weeks. Err on the side of a slightly lower stable LR.
-- **Decay length matters.** Too short (< 1% of tokens): model doesn't settle, final loss is noisy. Too long (> 30% of tokens): you're just cosine-decay with extra steps, losing the "re-usable stable endpoint" benefit. 5–15% is the sweet spot most labs land on.
+- **Decay length matters.** Too short ($< 1\%$ of tokens): model doesn't settle, final loss is noisy. Too long ($> 30\%$ of tokens): you're just cosine-decay with extra steps, losing the "re-usable stable endpoint" benefit. 5–15% is the sweet spot most labs land on.
 - **Watch for curriculum-style shifts at the decay boundary.** Most WSD deployments swap to a higher-quality data mix exactly when decay starts. If you *don't* swap (i.e. same data into decay as into stable), you'll see smaller benchmark gains — the decay-phase leverage comes from the data, not the LR alone.
 - **Not a free lunch for tiny runs.** Under small compute, WSD's stable-then-decay is roughly equivalent to cosine. The "re-fork the endpoint" benefit assumes you actually plan to run multiple decay experiments; if you're running one shot, pick whichever schedule your codebase already has.
 - **Stable phase reveals mesa-stability.** If your recipe has an unnoticed slow instability (e.g. attention-logit drift), WSD's long constant-LR phase will surface it before a cosine run would. That's a feature — it makes stability issues visible earlier.

@@ -36,73 +36,74 @@ Both formats were standardized in the 2022 "FP8 Formats for Deep Learning" paper
 
 ### The value formula
 
-For a non-zero FP8 value with sign bit `s`, exponent field `E`, mantissa field `M`, exponent bias `bias`, mantissa width `m`:
+For a non-zero FP8 value with sign bit $s$, exponent field $E$, mantissa field $M$, exponent bias $\mathrm{bias}$, mantissa width $m$:
 
-**Normal** (`E ≠ 0`):
+**Normal** ($E \ne 0$):
 
-```
-v = (-1)^s · 2^(E - bias) · (1 + M / 2^m)
-```
+$$
+v = (-1)^s \cdot 2^{E - \mathrm{bias}} \cdot \left( 1 + \frac{M}{2^m} \right)
+$$
 
-**Subnormal** (`E = 0`):
+**Subnormal** ($E = 0$):
 
-```
-v = (-1)^s · 2^(1 - bias) · (M / 2^m)
-```
+$$
+v = (-1)^s \cdot 2^{1 - \mathrm{bias}} \cdot \frac{M}{2^m}
+$$
 
-**Special case for E4M3**: the standard IEEE pattern would reserve `E = 0b1111` for ±∞ and NaN, giving a max of 240. The E4M3 FP8 spec sacrifices ±∞ (keeping only one NaN encoding) to reclaim those values for finite numbers — that's why max E4M3 = **448** and not 240. E5M2 keeps the standard ±∞ / NaN behavior.
+**Special case for E4M3**: the standard IEEE pattern would reserve $E = 0b1111$ for $\pm\infty$ and NaN, giving a max of 240. The E4M3 FP8 spec sacrifices $\pm\infty$ (keeping only one NaN encoding) to reclaim those values for finite numbers — that's why max E4M3 = **448** and not 240. E5M2 keeps the standard $\pm\infty$ / NaN behavior.
 
 ### Concrete: reading an E4M3 bit pattern
 
-Take `0 1000 101` = `s=0, E=8, M=5`.
+Take `0 1000 101` = $s=0$, $E=8$, $M=5$.
 
-```
-v = 1 · 2^(8 - 7) · (1 + 5/8) = 2 · 1.625 = 3.25
-```
+$$
+v = 1 \cdot 2^{8 - 7} \cdot \left( 1 + \frac{5}{8} \right) = 2 \cdot 1.625 = 3.25
+$$
 
 ### Quantization
 
-To represent a higher-precision tensor `x` (FP32 / BF16) in FP8, pick a scale `s` and compute:
+To represent a higher-precision tensor $x$ (FP32 / BF16) in FP8, pick a scale $s$ and compute:
 
-```
-x_fp8   = round(x / s)    ← clipped to the FP8 representable range
-x_recon = x_fp8 · s       ← when read back into FP32/BF16
-```
+$$
+x_{\text{fp8}} = \mathrm{round}(x / s) \quad \text{(clipped to the FP8 representable range)}
+$$
 
-The scale `s` is stored separately in higher precision (FP32 or BF16). Choosing it is the entire game:
+$$
+x_{\text{recon}} = x_{\text{fp8}} \cdot s \quad \text{(when read back into FP32/BF16)}
+$$
 
-```
-s = max(|x|) / max_fp8      ← "absmax" scaling; fits the whole range of x
-                              into [-max_fp8, +max_fp8]
-```
+The scale $s$ is stored separately in higher precision (FP32 or BF16). Choosing it is the entire game:
 
-`max_fp8 = 448` for E4M3, `57344` for E5M2.
+$$
+s = \frac{\max(|x|)}{\max_{\text{fp8}}} \quad \text{("absmax" scaling; fits the whole range of } x \text{ into } [-\max_{\text{fp8}}, +\max_{\text{fp8}}])
+$$
+
+$\max_{\text{fp8}} = 448$ for E4M3, $57344$ for E5M2.
 
 ### Scale granularity
 
 A single scale per tensor is the cheapest but most fragile — one outlier makes every other value round to ~0. Common granularities, from coarse to fine:
 
-| Granularity | Scale shape for a weight `W: [out, in]` | Cost | Robustness |
+| Granularity | Scale shape for a weight $W: [\text{out}, \text{in}]$ | Cost | Robustness |
 |---|---|---|---|
 | Per-tensor | 1 scalar | ~free | low |
-| Per-channel (row or col) | `[out]` or `[in]` | one per row/col | medium |
-| Per-block (e.g. 128×128) | `[out/128, in/128]` | one per tile | high |
-| Per-group along a dim | `[out, in/group]` | one per group | high |
+| Per-channel (row or col) | $[\text{out}]$ or $[\text{in}]$ | one per row/col | medium |
+| Per-block (e.g. $128 \times 128$) | $[\text{out}/128, \text{in}/128]$ | one per tile | high |
+| Per-group along a dim | $[\text{out}, \text{in}/\text{group}]$ | one per group | high |
 
 Finer granularity = more scales stored alongside the FP8 tensor, but each scale covers a narrower slice so outliers are contained locally.
 
-A concrete modern recipe (DeepSeek-V3): **1×128 tiles for activations** (one scale per token per 128-channel group) and **128×128 blocks for weights**.
+A concrete modern recipe (DeepSeek-V3): **$1 \times 128$ tiles for activations** (one scale per token per 128-channel group) and **$128 \times 128$ blocks for weights**.
 
 ### FP8 matmul
 
 Hardware FP8 matmul on H100 etc. takes FP8 inputs and accumulates to higher precision:
 
-```
-C[i,j] = Σ_k  A[i,k] · B[k,j]        (A, B in FP8)
-                                      (accumulator in FP32 or BF16)
-```
+$$
+C[i,j] = \sum_k A[i,k] \cdot B[k,j] \quad (A, B \text{ in FP8; accumulator in FP32 or BF16})
+$$
 
-The tensor core does a chunk of the sum in its native accumulator (FP22-ish on H100, FP16 partial on some hardware) and periodically promotes to FP32. If you want strict FP32 accumulation, you must force a flush every N inner-dim elements — most codes land on N = 128.
+The tensor core does a chunk of the sum in its native accumulator (FP22-ish on H100, FP16 partial on some hardware) and periodically promotes to FP32. If you want strict FP32 accumulation, you must force a flush every $N$ inner-dim elements — most codes land on $N = 128$.
 
 ### Why FP8 works at all for LLMs
 
@@ -121,11 +122,11 @@ Weights and activations in trained transformers are approximately log-normal, so
 
 ## Gotchas & tricks
 
-- **E4M3's 448 max is not a typo.** It comes from sacrificing ±∞ to recover two extra finite exponents. If you compare against a naïve (E, m, bias) calculation you'll get 240 and be confused.
-- **Use E4M3 for forward, E5M2 for backward — unless you have fine-grained scaling.** With 1×128 activation tiles the local dynamic range is bounded enough that E4M3 works for gradients too; that's what DeepSeek-V3 does.
+- **E4M3's 448 max is not a typo.** It comes from sacrificing $\pm\infty$ to recover two extra finite exponents. If you compare against a naïve $(E, m, \mathrm{bias})$ calculation you'll get 240 and be confused.
+- **Use E4M3 for forward, E5M2 for backward — unless you have fine-grained scaling.** With $1 \times 128$ activation tiles the local dynamic range is bounded enough that E4M3 works for gradients too; that's what DeepSeek-V3 does.
 - **Round-to-nearest-even** is the only rounding mode that doesn't bias training. Truncation introduces systematic drift.
 - **Denormals/subnormals matter in FP8.** The subnormal range is a meaningful chunk of the representable numbers (unlike FP32 where you can often ignore them). Don't flush-to-zero.
-- **Scale storage is not free.** A 128×128 block scale on a 7168×7168 weight matrix costs an additional 7168/128 × 7168/128 = 3136 FP32 scales ≈ 12 KB — negligible for weights, but per-tile activation scales recomputed every step add up in bandwidth.
+- **Scale storage is not free.** A $128 \times 128$ block scale on a $7168 \times 7168$ weight matrix costs an additional $7168/128 \times 7168/128 = 3136$ FP32 scales $\approx 12$ KB — negligible for weights, but per-tile activation scales recomputed every step add up in bandwidth.
 - **Accumulation precision matters more than quantization precision.** Most FP8 failure stories trace back to tensor cores accumulating to FP16/BF16 over long inner dims. Force FP32 accumulation (periodic flush) if your hardware default isn't already FP32.
 - **Not everything should be FP8.** Embeddings, the LM head, softmax, normalization, and the MoE router are almost always kept in BF16/FP32 — tight numerics, small FLOP share, nothing to gain.
 - **E4M3 has one NaN, E5M2 has many.** E4M3's reclaiming of `0b1111_xxx` bit patterns means there's only one NaN encoding. Important if you're writing hand-rolled kernels that check for NaN.
@@ -136,6 +137,6 @@ Weights and activations in trained transformers are approximately log-normal, so
 
 - Paper: *FP8 Formats for Deep Learning* — Micikevicius et al., NVIDIA / Arm / Intel, 2022 — the spec for E4M3 and E5M2.
 - Paper: *Using FP8 for Deep Learning Training* — Sun et al., 2020 — one of the earlier explorations of 8-bit FP training before standardization.
-- Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — end-to-end FP8 training with 1×128 / 128×128 tile scaling and forced FP32 accumulation.
+- Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — end-to-end FP8 training with $1 \times 128$ / $128 \times 128$ tile scaling and forced FP32 accumulation.
 - Spec: OCP Microscaling Formats (MX) — 2023 — successor standards for per-block FP/INT formats.
 - NVIDIA Hopper Tuning Guide — documents the hardware FP8 matmul path and accumulation behavior on H100.

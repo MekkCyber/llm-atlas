@@ -64,7 +64,7 @@ The architectural changes from OLMo 1, each independently ablated:
 
 - **[Reordered norm](../architectures/reordered-norm.md)** — RMSNorm on the *output* of each sub-layer before adding to the residual. Neither pre-norm nor classic post-norm; their variant keeps the residual stream clean and sub-layer contributions bounded.
 - **[QK-norm](../architectures/qk-norm.md)** — per-head RMSNorm on Q and K before the attention dot product. Prevents attention-logit drift.
-- **[Z-loss](../fundamentals/z-loss.md)** — `α · (log Z)²` added to CE. Prevents output-logit drift, which was the other spike class.
+- **[Z-loss](../fundamentals/z-loss.md)** — $\alpha \cdot (\log Z)^2$ added to CE. Prevents output-logit drift, which was the other spike class.
 - **Small-std initialization** and careful residual-branch scaling.
 
 Everything else is standard (RoPE, SwiGLU, no biases). The contribution is the *stability package*, not the individual pieces.

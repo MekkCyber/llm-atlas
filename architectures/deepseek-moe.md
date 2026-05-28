@@ -1,7 +1,7 @@
 # DeepSeekMoE
 *Depth — one specific technique, grounded in its source paper(s).*
 
-**TL;DR:** An MoE design that pushes **expert granularity** (many small experts instead of a few big ones) and adds a **shared always-on expert** that carries cross-domain common knowledge. Each token is routed to top-K of many small experts plus the shared expert. Introduced in the DeepSeekMoE paper (2024), then scaled to 671B total / 37B active in DeepSeek-V3.
+**TL;DR:** An MoE design that pushes **expert granularity** (many small experts instead of a few big ones) and adds a **shared always-on expert** that carries cross-domain common knowledge. Each token is routed to top-$K$ of many small experts plus the shared expert. Introduced in the DeepSeekMoE paper (2024), then scaled to 671B total / 37B active in DeepSeek-V3.
 
 **Prereqs:** [_moe](_moe.md), [transformer-block](transformer-block.md)
 **Related:** [aux-loss-free-balancing](aux-loss-free-balancing.md)
@@ -38,26 +38,29 @@ In DeepSeek-V3 this lands at **256 routed experts + 1 shared expert**, with each
 
 ### Routing
 
-Affinity score per routed expert `i`:
+Affinity score per routed expert $i$:
 
-```
-s_{i,t} = sigmoid( h_t · e_i )          ← e_i is a learned centroid per expert
-```
+$$
+s_{i,t} = \mathrm{sigmoid}( h_t \cdot e_i ) \quad \text{($e_i$ is a learned centroid per expert)}
+$$
 
 DeepSeekMoE uses **sigmoid per expert** rather than a softmax over all experts. This is a small but deliberate choice: the sigmoid's scores are independent per expert, which means adding a bias term to one expert's score (for aux-loss-free balancing, see [aux-loss-free-balancing](aux-loss-free-balancing.md)) doesn't affect others' scores.
 
-Top-K selection + gating weight normalization:
+Top-$K$ selection + gating weight normalization:
 
-```
-S_t = { top-K_r experts by s_{i,t} }
-g_{i,t} = s_{i,t} / Σ_{j ∈ S_t} s_{j,t}      for i ∈ S_t;   0 otherwise
-```
+$$
+S_t = \{ \text{top-}K_r \text{ experts by } s_{i,t} \}
+$$
+
+$$
+g_{i,t} = \frac{s_{i,t}}{\sum_{j \in S_t} s_{j,t}} \quad \text{for } i \in S_t;\; 0 \text{ otherwise}
+$$
 
 ### Full FFN output
 
-```
-y_t = FFN_shared(h_t) + Σ_{i ∈ S_t} g_{i,t} · FFN_routed_i(h_t)
-```
+$$
+y_t = \mathrm{FFN}_{\text{shared}}(h_t) + \sum_{i \in S_t} g_{i,t} \cdot \mathrm{FFN}_{\text{routed},i}(h_t)
+$$
 
 In DeepSeek-V3 the shared expert uses the same FFN shape (intermediate dim 2048) as each routed expert, so its contribution is directly comparable in scale.
 
@@ -65,7 +68,7 @@ In DeepSeek-V3 the shared expert uses the same FFN shape (intermediate dim 2048)
 
 At fixed active FLOPs per token, which is better: 2 experts of intermediate dim 8192, or 8 experts of intermediate dim 2048? Naively these have the same output space, but the fine-grained version:
 
-- Gives the router **4× more unique combinations** to choose from (`C(8,8)` vs `C(2,2)` — sorry, `C(256,8)` vs `C(8,2)` in the real setting).
+- Gives the router **4× more unique combinations** to choose from ($C(256, 8)$ vs $C(8, 2)$ in the real setting).
 - Allows finer-grained specialization — an expert can focus on a narrower slice of data.
 - Reduces interference — fewer tokens share each expert, so gradients from unrelated tokens don't fight over the same weights.
 
@@ -79,7 +82,7 @@ Empirically, removing the shared expert costs 1–2 benchmark points across task
 
 ### Node-limited routing
 
-At 256 experts spread across many nodes, naive top-K routing can scatter a token's 8 experts across all nodes — cross-node all-to-all cost explodes. DeepSeek-V3 constrains: **each token is routed to experts on at most `M = 4` nodes**. Implemented as a hard mask at the top-K selection step — pick top-M nodes by sum-of-top-scores first, then top-8 experts within those nodes.
+At 256 experts spread across many nodes, naive top-$K$ routing can scatter a token's 8 experts across all nodes — cross-node all-to-all cost explodes. DeepSeek-V3 constrains: **each token is routed to experts on at most $M = 4$ nodes**. Implemented as a hard mask at the top-$K$ selection step — pick top-$M$ nodes by sum-of-top-scores first, then top-8 experts within those nodes.
 
 ---
 
@@ -98,9 +101,9 @@ At 256 experts spread across many nodes, naive top-K routing can scatter a token
 - **Shared expert FLOPs count.** It's always active, so it adds to per-token active FLOPs. Pick the shared expert's intermediate dim deliberately — same as routed-expert dim is a natural choice, but 2× or 0.5× are also defensible. In V3 they chose 1× matching the routed dim.
 - **Sigmoid vs softmax.** The sigmoid router is a departure from Mixtral and Switch, which use softmax. Only use sigmoid if you also plan to do aux-loss-free balancing — the biasing trick needs sigmoid's independence-per-expert.
 - **Expert capacity is soft.** Unlike GShard's hard capacity factor, DeepSeekMoE doesn't drop tokens — overloaded experts just run on more tokens. Aux-loss-free balancing keeps overloads small in practice.
-- **Router parameters are small.** With `d_model = 7168` and 256 experts, the router is `7168 × 256 ≈ 1.8M` parameters per layer — negligible against the ~1.7B of routed FFN params per layer.
-- **Training stability sensitive to router init.** Initialize expert centroids `e_i` small so the router is near-uniform at the start; let load balancing push it to specialization over time.
-- **Don't confuse with Mixtral's 8 experts.** Mixtral's "8 experts" is coarse-grained (each expert ≈ dense FFN size). DeepSeekMoE's 256 experts each have intermediate dim ~1/8 of that — same total capacity, finer slicing.
+- **Router parameters are small.** With $d_{\text{model}} = 7168$ and 256 experts, the router is $7168 \times 256 \approx 1.8\mathrm{M}$ parameters per layer — negligible against the ~1.7B of routed FFN params per layer.
+- **Training stability sensitive to router init.** Initialize expert centroids $e_i$ small so the router is near-uniform at the start; let load balancing push it to specialization over time.
+- **Don't confuse with Mixtral's 8 experts.** Mixtral's "8 experts" is coarse-grained (each expert $\approx$ dense FFN size). DeepSeekMoE's 256 experts each have intermediate dim $\sim 1/8$ of that — same total capacity, finer slicing.
 
 ---
 

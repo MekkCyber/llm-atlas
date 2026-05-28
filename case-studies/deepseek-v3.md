@@ -76,9 +76,9 @@ H800 is the export-controlled variant of H100 — same compute, reduced NVLink (
     - Constant at 2.2e-4 until 10T tokens consumed
     - Cosine decay 2.2e-4 → 2.2e-5 over the next 4.3T
     - Step-constant tail: 2.2e-5 for 333B tokens, then 7.3e-6 for final 167B
-- **Aux-loss-free bias update step** `γ = 0.001` for first 14.3T tokens, `γ = 0` for final 500B (biases frozen).
-- **Complementary sequence-wise balance loss** with coefficient `α = 1e-4`.
-- **MTP coefficient** `λ = 0.3` for first 10T tokens, `λ = 0.1` for final 4.8T.
+- **Aux-loss-free bias update step** $\gamma = 0.001$ for first 14.3T tokens, $\gamma = 0$ for final 500B (biases frozen).
+- **Complementary sequence-wise balance loss** with coefficient $\alpha = 10^{-4}$.
+- **MTP coefficient** $\lambda = 0.3$ for first 10T tokens, $\lambda = 0.1$ for final 4.8T.
 
 ### Context extension (YaRN)
 

@@ -13,15 +13,15 @@
 
 A **process reward model** (PRM) is a function
 
-```
-PRM(q, o_1..i) → score_i    for i = 1..S          (S = number of steps)
-```
+$$
+\mathrm{PRM}(q, o_{1..i}) \to \mathrm{score}_i \quad \text{for } i = 1, \ldots, S \quad (S = \text{number of steps})
+$$
 
 scoring each intermediate step of a reasoning trace. Contrast with an [ORM](orm.md), which returns one scalar for the whole solution.
 
 Three things PRMs can be used for:
 
-1. **Best-of-N reranking.** Sample K full solutions. Compute per-step scores for each. Aggregate (min, product, mean) into a solution score. Rerank by solution score. This was Lightman's main use.
+1. **Best-of-N reranking.** Sample $K$ full solutions. Compute per-step scores for each. Aggregate (min, product, mean) into a solution score. Rerank by solution score. This was Lightman's main use.
 2. **RL reward shaping.** Use per-step scores as dense rewards during policy optimization — each step's advantage depends on its own PRM score rather than a single terminal reward broadcast across all tokens. Math-Shepherd does this with PPO.
 3. **Search guidance.** The PRM serves as a value function for tree search (MCTS, beam search). See [mcts](mcts.md) — ReST-MCTS* uses a PRM this way.
 
@@ -35,15 +35,15 @@ The hard part of PRMs isn't the architecture or the loss — it's **labeling**. 
 
 **(a) Human step annotation (Lightman 2023 — "Let's Verify Step by Step").** Humans read each step and mark it positive / negative / neutral. Expensive but high-quality. PRM800K contains **800k step-level labels** over ~75k solutions to ~12k problems — at the time, the largest step-level dataset ever collected.
 
-**(b) Monte-Carlo rollouts (Math-Shepherd, Wang 2024).** No humans. For each step `s_i` in a solution, sample `N` continuations from `s_i`. The step's quality is the **fraction of continuations that reach the correct final answer**:
+**(b) Monte-Carlo rollouts (Math-Shepherd, Wang 2024).** No humans. For each step $s_i$ in a solution, sample $N$ continuations from $s_i$. The step's quality is the **fraction of continuations that reach the correct final answer**:
 
-```
-MC(s_i) = (1/N) · Σ_j  1[answer(rollout_j) = reference]
-```
+$$
+\mathrm{MC}(s_i) = \frac{1}{N} \sum_{j=1}^{N} \mathbf{1}[\,\mathrm{answer}(\mathrm{rollout}_j) = \mathrm{reference}\,]
+$$
 
 Two label variants:
 - **Hard Estimation (HE):** label = 1 if any rollout succeeds from this prefix, else 0.
-- **Soft Estimation (SE):** label = the MC fraction itself (real number in [0,1]).
+- **Soft Estimation (SE):** label = the MC fraction itself (real number in $[0, 1]$).
 
 (c) **Human + model hybrid (Uesato 2022).** Humans label a smaller seed set; a learned PRM bootstraps labels on additional data.
 
@@ -53,15 +53,15 @@ Monte-Carlo labeling eats compute, but removes the human bottleneck and scales �
 
 The PRM is a base LM with a **classification head** that predicts correctness at a designated boundary token (end of each step). Training is standard:
 
-```
-L_PRM = - Σ_i [ y_i · log PRM(s_{1..i}) + (1-y_i) · log(1 - PRM(s_{1..i})) ]
-```
+$$
+L_{\mathrm{PRM}} = -\sum_i \left[ y_i \cdot \log \mathrm{PRM}(s_{1..i}) + (1 - y_i) \cdot \log(1 - \mathrm{PRM}(s_{1..i})) \right]
+$$
 
-where `y_i ∈ {0, 1}` (HE labels) or `y_i ∈ [0, 1]` (SE labels) and `PRM(s_{1..i})` is the sigmoid output after step `i`. A single forward pass over the full solution yields all per-step scores.
+where $y_i \in \{0, 1\}$ (HE labels) or $y_i \in [0, 1]$ (SE labels) and $\mathrm{PRM}(s_{1..i})$ is the sigmoid output after step $i$. A single forward pass over the full solution yields all per-step scores.
 
 ### Aggregating step scores into a solution score
 
-For reranking, aggregate `score_1..score_S` into one number per solution:
+For reranking, aggregate $\mathrm{score}_1, \ldots, \mathrm{score}_S$ into one number per solution:
 
 | Aggregation | Interpretation | Used by |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ The product and the minimum are the two most principled choices. Lightman's defa
 
 ### Using a PRM as an RL reward
 
-Math-Shepherd runs **step-by-step PPO** where each step gets a dense reward from the PRM. Instead of a single terminal reward broadcast to all tokens, the advantage at token `t` is driven by the PRM's score at the step `t` belongs to. This gives finer credit assignment: a policy that writes a correct first step and a wrong second step gets rewarded for the first and penalized for the second, separately.
+Math-Shepherd runs **step-by-step PPO** where each step gets a dense reward from the PRM. Instead of a single terminal reward broadcast to all tokens, the advantage at token $t$ is driven by the PRM's score at the step $t$ belongs to. This gives finer credit assignment: a policy that writes a correct first step and a wrong second step gets rewarded for the first and penalized for the second, separately.
 
 This is the PRM's theoretical advantage over an ORM: **local credit assignment**. In practice the gains are modest — Math-Shepherd reports Mistral-7B going from 77.9% → 84.1% on GSM8K with step-by-step PPO, vs gains from the same model with outcome-only RL that are in a similar range.
 
@@ -97,17 +97,17 @@ This is the PRM's theoretical advantage over an ORM: **local credit assignment**
 - **Local credit assignment.** A PRM tells you *which* step went wrong, not just that the solution failed. In principle this should dramatically improve policy gradients over sparse outcome rewards. In practice the effect is smaller than hoped — but still real, especially on long reasoning chains.
 - **Catches reasoning errors when the final answer is right.** ORMs trust final answers; PRMs don't. For high-stakes applications where you care about the reasoning (not just the number), PRMs are strictly better signals.
 - **Foundation for MCTS with LLMs.** Tree search over reasoning needs a per-step value estimate. PRMs provide one. See [mcts](mcts.md).
-- **Pushes the test-time-compute frontier.** PRM-reranked best-of-N at large K was (briefly) the SOTA recipe on MATH — Lightman 2023's 78% was a big jump at release. Superseded by long-CoT RL (R1-class models), but the PRM+search family continues in parallel.
+- **Pushes the test-time-compute frontier.** PRM-reranked best-of-N at large $K$ was (briefly) the SOTA recipe on MATH — Lightman 2023's 78% was a big jump at release. Superseded by long-CoT RL (R1-class models), but the PRM+search family continues in parallel.
 
 ---
 
 ## Gotchas & tricks
 
 - **What counts as a "step" is ill-defined.** For math word problems you can split on newlines or numbered lists. For general reasoning — "explain the tradeoffs of X" — there is no clean step boundary. This was **DeepSeek-R1's first stated reason** for abandoning PRMs: *"it is challenging to explicitly define a fine-grain step in general reasoning."*
-- **Labeling is the cost center, not training.** PRM800K took human effort measured in person-years. Monte-Carlo labels (Math-Shepherd) replace humans with compute, but the compute is substantial: `N` continuations per step per training problem, where `N` often ≥ 8. For a large training set this becomes a real budget item.
+- **Labeling is the cost center, not training.** PRM800K took human effort measured in person-years. Monte-Carlo labels (Math-Shepherd) replace humans with compute, but the compute is substantial: $N$ continuations per step per training problem, where $N$ often $\ge 8$. For a large training set this becomes a real budget item.
 - **Reward hacking of learned PRMs is real.** The policy can discover prefix patterns the PRM rewards, even when the steps aren't actually correct. **DeepSeek-R1's third stated reason** for rejecting PRMs: *"a model-based PRM inevitably leads to reward hacking."* Mitigation: KL penalty, frequent eval against rule verifiers, cap PRM-as-reward training epochs.
 - **MC-labeled PRMs have label noise.** A step can be "correct" in some continuations and "wrong" in others. HE labels smooth this by taking any-success; SE labels keep the noise but use it as a gradient signal. Pick carefully — SE is higher variance, HE is biased.
-- **Product aggregation can underflow on long solutions.** 30 steps with p = 0.9 each gives 0.04. Use log-probabilities for numerical stability; prefer min-aggregation on very long chains.
+- **Product aggregation can underflow on long solutions.** 30 steps with $p = 0.9$ each gives $0.04$. Use log-probabilities for numerical stability; prefer min-aggregation on very long chains.
 - **PRMs shine on reranking, struggle on RL.** The cleanest empirical signal is that PRMs as rerankers reliably beat ORMs on hard math. PRMs as RL rewards are, at best, tied with ORM-RL and frequently unstable. If you only do one, do reranking.
 - **The "ORM is surprisingly competitive" result (Uesato 2022)** matters for planning: an ORM trained on pure outcome labels ends up agreeing with human step labels ~85% of the time. Much of the benefit of PRMs is latent in ORMs trained on enough data. A rule-verifier-driven ORM or — better — pure [RLVR](../rlvr.md) often matches PRM reranking at a fraction of the cost.
 - **Not all "PRMs" in recent papers are the same thing.** Some "PRMs" are per-token critics used as RL baselines (closer to a value network); others are per-step binary classifiers (this page's focus). The labeling procedure and aggregation matter more than the name — always check.

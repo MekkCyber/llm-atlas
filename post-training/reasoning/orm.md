@@ -13,11 +13,11 @@
 
 An **outcome reward model** (ORM) is a learned function
 
-```
-ORM(q, o) → [0, 1]    # probability the final answer in solution o is correct
-```
+$$
+\mathrm{ORM}(q, o) \to [0, 1] \quad \text{(probability the final answer in solution } o \text{ is correct)}
+$$
 
-trained on a dataset of `(prompt q, solution o, correct_final_answer ∈ {0, 1})` triples. "Outcome" because the label comes from the **final outcome only** — not from judging the reasoning steps.
+trained on a dataset of $(\text{prompt } q, \text{solution } o, \text{correct\_final\_answer} \in \{0, 1\})$ triples. "Outcome" because the label comes from the **final outcome only** — not from judging the reasoning steps.
 
 ### Contrast with related things
 
@@ -49,9 +49,9 @@ A rule verifier and an ORM solve overlapping problems: both produce an "is this 
 
 **Loss.** A combined objective:
 
-```
-L_ORM = L_verification + L_LM
-```
+$$
+L_{\mathrm{ORM}} = L_{\mathrm{verification}} + L_{\mathrm{LM}}
+$$
 
 The verification loss is per-token prediction of the solution's correctness label (the same 0/1 broadcast across every token of a given solution). The paper also keeps the standard language-modeling loss as an auxiliary. The LM auxiliary matters: verifiers trained only on the verification loss overfit fast.
 
@@ -67,11 +67,11 @@ at test time:
     return o_i with highest ORM(q, o_i)
 ```
 
-In Cobbe 2021, this pushes a **6B model with a 6B ORM to roughly match a 175B finetuned baseline on GSM8K** — a ~30× effective model-size increase for the cost of K inference samples. The best-of-K curve rises sharply up to ~K=100, then plateaus; Cobbe notes that past ~400 samples, accuracy starts to *decrease* because the ORM occasionally scores a wrong solution above all right ones (reward-model error compounds with more candidates).
+In Cobbe 2021, this pushes a **6B model with a 6B ORM to roughly match a 175B finetuned baseline on GSM8K** — a ~30× effective model-size increase for the cost of $K$ inference samples. The best-of-$K$ curve rises sharply up to ~$K=100$, then plateaus; Cobbe notes that past ~400 samples, accuracy starts to *decrease* because the ORM occasionally scores a wrong solution above all right ones (reward-model error compounds with more candidates).
 
 ### RL usage — reward for policy optimization
 
-The ORM can also be a **reward function for RL post-training**. Uesato et al. (2022) show this explicitly on GSM8K with **expert iteration** (sample K from the policy, keep the top-ORM sample, SFT on those):
+The ORM can also be a **reward function for RL post-training**. Uesato et al. (2022) show this explicitly on GSM8K with **expert iteration** (sample $K$ from the policy, keep the top-ORM sample, SFT on those):
 
 ```
 for round:
@@ -109,14 +109,14 @@ The practical consequence: for math-style problems with clean ground-truth answe
 - **ORM generalization falls off out-of-distribution.** An ORM trained on GSM8K-style problems won't reliably score AIME or Olympiad problems — the reasoning patterns differ. Use the ORM within its training distribution, or retrain.
 - **Token-level vs solution-level scoring.** Cobbe's original ORM scores at every token; other implementations score only on the final token ("solution-level"). Token-level gives more signal and generalizes slightly better; solution-level is simpler and halves verifier-training compute. Either works; token-level is the stronger default.
 - **LM auxiliary loss is load-bearing.** Without the co-trained language-modeling objective, Cobbe's ORMs overfit and lose generalization. If you're training an ORM from scratch, keep the LM loss as an auxiliary.
-- **Temperature of the rollouts matters.** The ORM training data comes from sampling the generator. At temperature 0, every rollout is identical and you get no signal. Temperature around 0.7–1.0 is typical; Uesato used **T = 1.0** with K = 96.
+- **Temperature of the rollouts matters.** The ORM training data comes from sampling the generator. At temperature 0, every rollout is identical and you get no signal. Temperature around 0.7–1.0 is typical; Uesato used **$T = 1.0$** with $K = 96$.
 - **The ORM-as-RL-reward vs ORM-as-reranker distinction.** Reranking (cheap, one-time at inference) is where ORMs shine. Using an ORM as a *dense RL reward* is where reward hacking typically appears; if you have the option to use a rule verifier for RL and save the ORM for reranking, do that.
 
 ---
 
 ## Sources
 
-- Paper: *Training Verifiers to Solve Math Word Problems* — Cobbe et al., OpenAI, 2021, [arXiv 2110.14168](https://arxiv.org/abs/2110.14168) — introduces the verifier-style ORM, GSM8K dataset, and best-of-N reranking. Base models: GPT-3 family (primarily **6B and 175B**); K=100 rollouts per prompt; token-level verifier with joint verification + LM loss.
+- Paper: *Training Verifiers to Solve Math Word Problems* — Cobbe et al., OpenAI, 2021, [arXiv 2110.14168](https://arxiv.org/abs/2110.14168) — introduces the verifier-style ORM, GSM8K dataset, and best-of-N reranking. Base models: GPT-3 family (primarily **6B and 175B**); $K=100$ rollouts per prompt; token-level verifier with joint verification + LM loss.
 - Paper: *Solving Math Word Problems with Process- and Outcome-Based Feedback* — Uesato et al., DeepMind, 2022, [arXiv 2211.14275](https://arxiv.org/abs/2211.14275) — names the ORM/PRM distinction, reports the "ORM agrees with PRM labels ~85%" result, runs expert-iteration RL with both ORM and PRM rewards on Chinchilla-70B ("Our Base-70B"). Best GSM8K final-answer error: **12.7%** with SFT + ORM-RL.
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — discusses outcome vs process rewards and explicitly avoids learned neural RMs (including ORMs) during reasoning RL to prevent reward hacking.
 - Related: [orm](orm.md) is the RL-reward / reranker artifact; [rlvr](../rlvr.md) is the pure-rule-based version of the same idea with deterministic verifiers instead of a learned ORM.

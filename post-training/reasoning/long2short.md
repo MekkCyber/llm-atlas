@@ -1,7 +1,7 @@
 # long2short — Distilling Long-CoT into Short-CoT
 *Depth — four methods for transferring a long-CoT reasoning model's capability into a token-efficient short-CoT model.*
 
-**TL;DR:** After training a long-CoT model via [long-cot-rl](long-cot-rl.md) or similar, you have strong reasoning but expensive inference (thousands of tokens per response). **long2short** is the class of methods that compress the capability into a short-CoT model. Kimi k1.5 compares four: **(a) model merging** (weight-average long + short model), **(b) shortest rejection sampling SFT** (resample `n=8`, SFT on the shortest correct), **(c) DPO** on `(shortest correct, long-or-incorrect)` pairs, **(d) long2short RL** (a second RL phase with a length-capped max rollout plus the length penalty). Long2short RL wins on token efficiency: **Pass@1 = 60.8 on AIME 2024 with ~3,272 tokens avg** — a frontier short-CoT result.
+**TL;DR:** After training a long-CoT model via [long-cot-rl](long-cot-rl.md) or similar, you have strong reasoning but expensive inference (thousands of tokens per response). **long2short** is the class of methods that compress the capability into a short-CoT model. Kimi k1.5 compares four: **(a) model merging** (weight-average long + short model), **(b) shortest rejection sampling SFT** (resample $n=8$, SFT on the shortest correct), **(c) DPO** on $(\text{shortest correct}, \text{long-or-incorrect})$ pairs, **(d) long2short RL** (a second RL phase with a length-capped max rollout plus the length penalty). Long2short RL wins on token efficiency: **Pass@1 = 60.8 on AIME 2024 with ~3,272 tokens avg** — a frontier short-CoT result.
 
 **Prereqs:** [long-cot-rl](long-cot-rl.md), [length-penalty](length-penalty.md), [rejection-sampling](../rejection-sampling.md), [dpo](../dpo.md), [model-souping](../../pre-training/model-souping.md)
 **Related:** [online-policy-mirror-descent](online-policy-mirror-descent.md) · [kimi-k1-5 case study](../../case-studies/kimi-k1-5.md)
@@ -19,7 +19,7 @@ long2short is the bridge. Four methods, increasing cost and capability transfer:
 | Method | Cost | Training type | Key idea |
 |---|---|---|---|
 | **Model merging** | ~free | weight average | Linearly interpolate long-CoT model weights with a short-CoT model |
-| **Shortest rejection sampling SFT** | 1 SFT pass | supervised | Sample `n=8`, pick shortest correct, SFT on it |
+| **Shortest rejection sampling SFT** | 1 SFT pass | supervised | Sample $n=8$, pick shortest correct, SFT on it |
 | **DPO on length pairs** | 1 DPO pass | offline pref | Positive = shortest correct; negatives = incorrect + too-long correct |
 | **long2short RL** | 1 RL phase | online RL | Second RL phase with length-capped rollouts + length penalty |
 
@@ -31,11 +31,11 @@ Kimi reports long2short RL is the best token-efficient method.
 
 ### Method (a): Model merging
 
-```
-θ_short = (1 − α) · θ_long  +  α · θ_short_base
-```
+$$
+\theta_{\text{short}} = (1 - \alpha) \cdot \theta_{\text{long}} + \alpha \cdot \theta_{\text{short\_base}}
+$$
 
-for some mixing weight `α`. Works because nearby minima (shared initialization or shared early training) are linearly connected — averaging their weights lands on a reasonable point between their behaviors. Details and failure modes: [model-souping](../../pre-training/model-souping.md).
+for some mixing weight $\alpha$. Works because nearby minima (shared initialization or shared early training) are linearly connected — averaging their weights lands on a reasonable point between their behaviors. Details and failure modes: [model-souping](../../pre-training/model-souping.md).
 
 - **Cost**: single state-dict average. Zero training.
 - **Assumption**: the long-CoT and short-CoT models share enough parameter-space proximity. In practice, both should be fine-tuned from the same base; directly merging a long-CoT model with an unrelated short-CoT model is less predictable.
@@ -54,11 +54,11 @@ for each prompt x:
 π_short = SFT(π_base, sft_data)
 ```
 
-Pick the shortest correct response per prompt as the SFT target. Same pattern as [rejection-sampling](../rejection-sampling.md) but with `len(o)` as the tie-breaker among correct responses.
+Pick the shortest correct response per prompt as the SFT target. Same pattern as [rejection-sampling](../rejection-sampling.md) but with $\mathrm{len}(o)$ as the tie-breaker among correct responses.
 
-- **Cost**: `n=8` rollouts per prompt + one full SFT pass.
+- **Cost**: $n=8$ rollouts per prompt + one full SFT pass.
 - **Quality**: middle. Better than merging (targeted distillation); worse than long2short RL (SFT is one-pass, no optimization pressure on length continuously).
-- **Knobs**: `n` (rollout count), the correctness filter, any diversity filters on top.
+- **Knobs**: $n$ (rollout count), the correctness filter, any diversity filters on top.
 
 ### Method (c): DPO on length pairs
 
@@ -80,7 +80,7 @@ for each prompt x:
 
 Key structural choices:
 - **Positive** = shortest correct.
-- **Negatives** = all incorrect + all correct responses **>1.5× the length** of the positive. (Correct-but-too-long also gets dispreferred — the policy learns both "be correct" and "be concise".)
+- **Negatives** = all incorrect + all correct responses **$> 1.5\times$ the length** of the positive. (Correct-but-too-long also gets dispreferred — the policy learns both "be correct" and "be concise".)
 - Train via standard [dpo](../dpo.md) on these pairs.
 
 - **Cost**: rollouts + one DPO pass.
@@ -145,9 +145,9 @@ Kimi k1.5's paper names the variants (Sec. 3.4):
 - **Start from a near-optimal long-CoT checkpoint.** If you start long2short RL from an undertrained long-CoT model, you lock in both short length *and* mediocre reasoning. The long-CoT phase is prerequisite.
 - **Length-penalty ramp-up still matters.** Even in long2short RL, turning the penalty on too aggressively early can collapse reasoning quality. The paper applies it from step 0 in long2short but with careful max-length / coefficient tuning.
 - **Correctness filter is load-bearing.** SRS and DPO both need a reliable "correct vs incorrect" signal to pick the shortest-*correct*. For non-verifiable tasks (general chat), you need a judge model — which introduces its own hacking surface.
-- **Model merging requires shared ancestry.** Merging `θ_long` with a differently-lineaged short model rarely works. Safer: both models fine-tuned from the same base, same recipe, different training budget.
+- **Model merging requires shared ancestry.** Merging $\theta_{\text{long}}$ with a differently-lineaged short model rarely works. Safer: both models fine-tuned from the same base, same recipe, different training budget.
 - **DPO's negatives need care.** The 1.5× length threshold is a paper choice; other thresholds (1.2×, 2×) change how aggressive the length shortening is. Too aggressive → penalizes correct reasoning that legitimately needs length. Too loose → no learning signal.
-- **`n = 8` is a small sample.** For hard prompts where the long-CoT model has low success rate, 8 samples might yield zero correct responses and the prompt gets dropped. Mitigation: higher `n` for hard prompts, or curriculum.
+- **$n = 8$ is a small sample.** For hard prompts where the long-CoT model has low success rate, 8 samples might yield zero correct responses and the prompt gets dropped. Mitigation: higher $n$ for hard prompts, or curriculum.
 - **Token count is tokenizer-specific.** "3,272 tokens average" under Kimi's tokenizer isn't the same real-world length under a different tokenizer. Compare within-tokenizer.
 - **Pass@1 alone is insufficient.** long2short methods can shift the accuracy/length trade-off smoothly. Report pass@1 **jointly with average tokens** (like Fig. 7) to compare fairly.
 - **long2short RL is not a free extra boost on top of the main RL.** It's a specialization phase that trades length for (usually) a small accuracy drop. Don't expect "long2short gives you frontier scores at short-CoT cost with no trade-off".

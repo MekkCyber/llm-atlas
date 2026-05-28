@@ -68,8 +68,8 @@ Across tens of thousands of RL steps, three things happen in sequence:
 
 The common worry — "the base model won't produce any correct solutions, so the gradient is zero" — is empirically wrong for strong bases. A few reasons:
 
-- **Latent capability from pretraining.** Modern bases (DeepSeek-V3, Llama 3, Qwen 2.5) have seen enormous amounts of math textbooks, code, and worked examples. They already *know* how to solve some AIME-level problems if sampled aggressively. The base-model pass@K for reasonable K is non-trivial; that's all RL needs to bootstrap.
-- **Group-relative advantages handle sparsity.** With `G = 16` rollouts per prompt, even a 5–10% success rate gives a strong within-group ranking signal. [GRPO](../grpo.md) normalizes by the group's own mean and std, so even sparse rewards produce informative advantages.
+- **Latent capability from pretraining.** Modern bases (DeepSeek-V3, Llama 3, Qwen 2.5) have seen enormous amounts of math textbooks, code, and worked examples. They already *know* how to solve some AIME-level problems if sampled aggressively. The base-model pass@$K$ for reasonable $K$ is non-trivial; that's all RL needs to bootstrap.
+- **Group-relative advantages handle sparsity.** With $G = 16$ rollouts per prompt, even a 5–10% success rate gives a strong within-group ranking signal. [GRPO](../grpo.md) normalizes by the group's own mean and std, so even sparse rewards produce informative advantages.
 - **Verifier-free tokens are cheap.** Each RL step requires only prompt sampling + verifier check + GRPO update. No human labels, no critic, no RM inference. You can afford to train for a long time on a curriculum of hard problems.
 
 ### R1-Zero vs R1
@@ -105,4 +105,4 @@ The point worth internalizing: **long-CoT RL from base works**; SFT and shaping 
 
 - Paper: *DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning* — DeepSeek-AI, 2025, arXiv 2501.12948, *Nature* 645, 633–638 — introduces R1-Zero, the canonical long-CoT RL demonstration.
 - Paper: *DeepSeekMath* — Shao et al., 2024 — introduces [GRPO](../grpo.md), the policy-optimization algorithm used for R1-Zero.
-- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025, arXiv 2501.12599 — contemporaneous long-CoT RL result using [online policy mirror descent](online-policy-mirror-descent.md) (an ℓ₂-regression sibling of GRPO) with an asymmetric [length-penalty](length-penalty.md) reward, [partial-rollouts](../../systems/partial-rollouts.md) infrastructure, and an explicit [long2short](long2short.md) distillation phase. See the [kimi-k1-5 case study](../../case-studies/kimi-k1-5.md) for the full pipeline and an R1↔k1.5 contrast table.
+- Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025, arXiv 2501.12599 — contemporaneous long-CoT RL result using [online policy mirror descent](online-policy-mirror-descent.md) (an $\ell_2$-regression sibling of GRPO) with an asymmetric [length-penalty](length-penalty.md) reward, [partial-rollouts](../../systems/partial-rollouts.md) infrastructure, and an explicit [long2short](long2short.md) distillation phase. See the [kimi-k1-5 case study](../../case-studies/kimi-k1-5.md) for the full pipeline and an R1↔k1.5 contrast table.

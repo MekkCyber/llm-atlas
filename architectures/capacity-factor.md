@@ -1,7 +1,7 @@
 # Expert Capacity Factor
 *Depth — one specific technique, grounded in its source paper(s).*
 
-**TL;DR:** A hard **cap on the number of tokens each expert can process per step**, expressed as a multiplier on the uniform share. `capacity = (tokens / num_experts) × capacity_factor`. If an expert is selected by more than `capacity` tokens, the **overflow tokens are dropped** — they skip the MoE computation and bypass via the residual connection. Capacity factor trades off wasted FLOPs on padding (higher factor) vs dropped-token quality loss (lower factor). Introduced in GShard (Lepikhin 2020) and stated cleanly in Switch Transformer (Fedus 2021).
+**TL;DR:** A hard **cap on the number of tokens each expert can process per step**, expressed as a multiplier on the uniform share. $\mathrm{capacity} = (\mathrm{tokens} / \mathrm{num\_experts}) \times \mathrm{capacity\_factor}$. If an expert is selected by more than $\mathrm{capacity}$ tokens, the **overflow tokens are dropped** — they skip the MoE computation and bypass via the residual connection. Capacity factor trades off wasted FLOPs on padding (higher factor) vs dropped-token quality loss (lower factor). Introduced in GShard (Lepikhin 2020) and stated cleanly in Switch Transformer (Fedus 2021).
 
 **Prereqs:** [_moe](_moe.md)
 **Related:** [load-balancing-loss](load-balancing-loss.md) · [deepseek-moe](deepseek-moe.md)
@@ -10,7 +10,7 @@
 
 ## What it is
 
-Sparse-MoE routing produces variable load per expert: even with a load-balance loss, the top-K selection can put more tokens on one expert than another within a given step. But hardware needs **static shapes**: a matmul of shape `[capacity, d_in] × [d_in, d_out]` is fast; a ragged `[variable, d_in] × [d_in, d_out]` is slow or impossible on most accelerators.
+Sparse-MoE routing produces variable load per expert: even with a load-balance loss, the top-$K$ selection can put more tokens on one expert than another within a given step. But hardware needs **static shapes**: a matmul of shape $[\mathrm{capacity}, d_{\mathrm{in}}] \times [d_{\mathrm{in}}, d_{\mathrm{out}}]$ is fast; a ragged $[\mathrm{variable}, d_{\mathrm{in}}] \times [d_{\mathrm{in}}, d_{\mathrm{out}}]$ is slow or impossible on most accelerators.
 
 Capacity factor resolves this by allocating **a fixed buffer per expert** (the "capacity") and enforcing it at dispatch time. Tokens that would exceed the buffer are dropped — their expert contribution becomes zero — and the token continues through the model via the residual connection. The MoE layer effectively acts as the identity for dropped tokens.
 
@@ -20,23 +20,23 @@ Capacity factor resolves this by allocating **a fixed buffer per expert** (the "
 
 ### The Switch form (clearest statement, Eq. 3)
 
-For a batch with `T` tokens distributed across `N` experts, top-1 routing:
+For a batch with $T$ tokens distributed across $N$ experts, top-1 routing:
 
-```
-expert_capacity  =  ⌈ (T / N) · capacity_factor ⌉
-```
+$$
+\mathrm{expert\_capacity} = \left\lceil \frac{T}{N} \cdot \mathrm{capacity\_factor} \right\rceil
+$$
 
-Each expert's compute buffer is shaped `[expert_capacity, d_in]`. When the router dispatches tokens to an expert in priority order (first-come, first-served by token index typically), the first `expert_capacity` tokens are processed; any additional tokens hitting that expert overflow.
+Each expert's compute buffer is shaped $[\mathrm{expert\_capacity}, d_{\mathrm{in}}]$. When the router dispatches tokens to an expert in priority order (first-come, first-served by token index typically), the first $\mathrm{expert\_capacity}$ tokens are processed; any additional tokens hitting that expert overflow.
 
 ### The GShard form (per-group, top-2)
 
-GShard uses groups of `S` tokens (batch is partitioned into `G` groups of `S`) and top-2 routing. The per-group, per-expert capacity is:
+GShard uses groups of $S$ tokens (batch is partitioned into $G$ groups of $S$) and top-2 routing. The per-group, per-expert capacity is:
 
-```
-capacity  =  ⌈ 2 · S / E ⌉      (for top-2)
-```
+$$
+\mathrm{capacity} = \left\lceil \frac{2 \cdot S}{E} \right\rceil \quad \text{(for top-2)}
+$$
 
-The implicit capacity factor in GShard is exactly `2` — just enough to accommodate top-2 routing under uniform load. GShard doesn't expose it as a tunable knob; Switch promotes it to a hyperparameter.
+The implicit capacity factor in GShard is exactly $2$ — just enough to accommodate top-2 routing under uniform load. GShard doesn't expose it as a tunable knob; Switch promotes it to a hyperparameter.
 
 ### Overflow handling: drop via residual
 
@@ -44,11 +44,9 @@ Switch §2.2 (direct quote): *"If too many tokens are routed to an expert (refer
 
 Concretely, the MoE combine step zeroes the dropped token's contribution:
 
-```
-y_t  =  x_t  +  Σ_{i selected}  g_{i,t} · FFN_i(x_t)
-     =  x_t  +  0                                         ← if token t is dropped
-     =  x_t
-```
+$$
+y_t = x_t + \sum_{i \text{ selected}} g_{i,t} \cdot \mathrm{FFN}_i(x_t) = x_t + 0 = x_t \quad \text{if token } t \text{ is dropped}
+$$
 
 GShard does the same. Dropped tokens are **not rerouted to a second-choice expert** — that's a different design (e.g. Expert Choice routing sidesteps the issue entirely).
 
@@ -82,13 +80,19 @@ Capacity factor is a two-sided knob:
 - **Too low** → many dropped tokens → noisy gradients at training time, quality degradation at eval.
 - **Too high** → each expert's buffer is mostly padding → wasted FLOPs, slower steps.
 
-```
-tokens_per_expert_actual  ≤  expert_capacity
-padding_fraction          =  (expert_capacity - tokens_actual) / expert_capacity
-drop_fraction             =  max(0, tokens_would_route - expert_capacity) / T
-```
+$$
+\mathrm{tokens\_per\_expert\_actual} \le \mathrm{expert\_capacity}
+$$
 
-A well-balanced router with capacity_factor = 1.25 usually sees drop_fraction < 1% and padding_fraction around 10–20%.
+$$
+\mathrm{padding\_fraction} = \frac{\mathrm{expert\_capacity} - \mathrm{tokens\_actual}}{\mathrm{expert\_capacity}}
+$$
+
+$$
+\mathrm{drop\_fraction} = \frac{\max(0,\, \mathrm{tokens\_would\_route} - \mathrm{expert\_capacity})}{T}
+$$
+
+A well-balanced router with $\mathrm{capacity\_factor} = 1.25$ usually sees $\mathrm{drop\_fraction} < 1\%$ and $\mathrm{padding\_fraction}$ around 10–20%.
 
 ---
 
@@ -103,14 +107,14 @@ A well-balanced router with capacity_factor = 1.25 usually sees drop_fraction < 
 ## Gotchas & tricks
 
 - **Drops are not rerouted.** The canonical behavior is: the token's expert contribution is zeroed and it continues via the residual. Some implementations route overflow to a second-choice expert (a "back-off" policy) — that's a non-standard variant; check your framework.
-- **Capacity-factor drops do not enter the aux loss.** `f_i` in the load-balance loss counts tokens the router *wanted* to dispatch, not the ones that actually got processed. Drops are invisible to the aux loss.
-- **Very low capacity starves small experts.** At capacity_factor = 1.0, any imbalance immediately causes drops. Combined with a poorly-tuned aux loss, training becomes unstable early. Start with 1.25.
+- **Capacity-factor drops do not enter the aux loss.** $f_i$ in the load-balance loss counts tokens the router *wanted* to dispatch, not the ones that actually got processed. Drops are invisible to the aux loss.
+- **Very low capacity starves small experts.** At $\mathrm{capacity\_factor} = 1.0$, any imbalance immediately causes drops. Combined with a poorly-tuned aux loss, training becomes unstable early. Start with 1.25.
 - **Eval capacity must be set explicitly.** The model file doesn't carry capacity_factor as a parameter — it's a serving-time config. Silently using the training value (1.25) at eval time costs benchmarks.
 - **Per-sequence drops matter more than batch-average drops.** A 5% batch-average drop rate can still mean one sequence has 30% of its tokens dropped. Profile drops at sequence granularity, not just batch average.
-- **Capacity counts dispatches, not unique tokens.** For top-K > 1 routing, one token is dispatched K times, each dispatch counts against some expert's capacity. Hence the implicit factor-of-K in GShard's top-2 capacity.
+- **Capacity counts dispatches, not unique tokens.** For top-$K > 1$ routing, one token is dispatched $K$ times, each dispatch counts against some expert's capacity. Hence the implicit factor-of-$K$ in GShard's top-2 capacity.
 - **FFN capacity vs attention.** Capacity factor applies to MoE FFN layers only. MoE-attention variants (rare) would need their own capacity accounting.
 - **Capacity factor is orthogonal to expert count.** Doubling experts at the same capacity factor halves the per-expert capacity — drop rate may go up if the router can't distribute that finely. Fine-grained MoE (many small experts) needs careful capacity-factor retuning.
-- **Doesn't apply to Expert Choice routing.** Expert Choice is balanced by construction: each expert picks its top-K tokens, so load is exactly K per expert and capacity factor is moot.
+- **Doesn't apply to Expert Choice routing.** Expert Choice is balanced by construction: each expert picks its top-$K$ tokens, so load is exactly $K$ per expert and capacity factor is moot.
 - **Zero overlap with aux-loss-free balancing's cadence.** Aux-loss-free bias updates happen at end of step (after drops are computed). Drops during the step have no influence on the bias update. This is not a bug — it's consistent with the aux-loss design — but worth knowing.
 
 ---

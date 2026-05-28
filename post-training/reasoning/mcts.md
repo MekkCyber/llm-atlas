@@ -32,47 +32,51 @@ The LLM world has been trying to port this to reasoning since 2023. Some success
 
 ### UCB1 / UCT — the classical selection rule
 
-At each non-leaf node, select the child `j` maximizing:
+At each non-leaf node, select the child $j$ maximizing:
 
-```
-UCB1(j) = X̄_j + C · √( ln(n_p) / n_j )
-```
+$$
+\mathrm{UCB1}(j) = \bar{X}_j + C \cdot \sqrt{\frac{\ln(n_p)}{n_j}}
+$$
 
 Where:
-- `X̄_j` = average reward observed through child `j`
-- `n_p` = visit count of the parent
-- `n_j` = visit count of the child
-- `C` = exploration constant (UCB1 default: `√2`; in practice tuned per domain, often something like `C = 1` for games)
+- $\bar{X}_j$ = average reward observed through child $j$
+- $n_p$ = visit count of the parent
+- $n_j$ = visit count of the child
+- $C$ = exploration constant (UCB1 default: $\sqrt{2}$; in practice tuned per domain, often something like $C = 1$ for games)
 
-**Intuition:** the first term (`X̄_j`) is pure greed — pick the best-looking child. The second term (`√(ln n_p / n_j)`) is the exploration bonus — it's large for children you've rarely visited and shrinks as you visit them. The `log` growth in the numerator means exploration gets *slowly* stronger as the parent is revisited. Unvisited children have infinite UCB, so they're always tried at least once.
+**Intuition:** the first term ($\bar{X}_j$) is pure greed — pick the best-looking child. The second term ($\sqrt{\ln n_p / n_j}$) is the exploration bonus — it's large for children you've rarely visited and shrinks as you visit them. The $\log$ growth in the numerator means exploration gets *slowly* stronger as the parent is revisited. Unvisited children have infinite UCB, so they're always tried at least once.
 
 UCT = UCB1 applied inside the selection phase of MCTS. That's it.
 
 ### PUCT — the AlphaZero selection rule
 
-AlphaGo / AlphaZero replace UCB1 with **PUCT** (Polynomial Upper Confidence Trees), which folds in a neural-net **policy prior** `P(s, a)`:
+AlphaGo / AlphaZero replace UCB1 with **PUCT** (Polynomial Upper Confidence Trees), which folds in a neural-net **policy prior** $P(s, a)$:
 
-```
-a* = argmax_a [ Q(s, a) + U(s, a) ]
+$$
+a^* = \arg\max_a \left[ Q(s, a) + U(s, a) \right]
+$$
 
-U(s, a) = c_puct(s) · P(s, a) · √( Σ_b N(s, b) )  /  (1 + N(s, a))
-```
+$$
+U(s, a) = c_{\text{puct}}(s) \cdot P(s, a) \cdot \frac{\sqrt{\sum_b N(s, b)}}{1 + N(s, a)}
+$$
 
 Where:
-- `Q(s, a)` = mean value observed when going through `(s, a)`
-- `P(s, a)` = neural-net policy prior for action `a` at state `s`
-- `N(s, a)` = visit count of edge `(s, a)`
-- `c_puct(s)` = exploration coefficient, itself visit-dependent in AlphaZero:
+- $Q(s, a)$ = mean value observed when going through $(s, a)$
+- $P(s, a)$ = neural-net policy prior for action $a$ at state $s$
+- $N(s, a)$ = visit count of edge $(s, a)$
+- $c_{\text{puct}}(s)$ = exploration coefficient, itself visit-dependent in AlphaZero:
 
-```
-c_puct(s) = log( (N_parent + c_base + 1) / c_base ) + c_init
+$$
+c_{\text{puct}}(s) = \log\!\left( \frac{N_{\text{parent}} + c_{\text{base}} + 1}{c_{\text{base}}} \right) + c_{\text{init}}
+$$
 
-AlphaZero values: c_base = 19,652   c_init = 1.25
-```
+$$
+\text{AlphaZero values: } c_{\text{base}} = 19{,}652,\quad c_{\text{init}} = 1.25
+$$
 
-**Intuition:** PUCT starts with the neural-net policy prior as the search guide; the `Q`-term overrides the prior as visits accumulate. A high-prior move is tried early; a low-prior move will eventually be tried if visit counts grow enough, but only if the budget permits.
+**Intuition:** PUCT starts with the neural-net policy prior as the search guide; the $Q$-term overrides the prior as visits accumulate. A high-prior move is tried early; a low-prior move will eventually be tried if visit counts grow enough, but only if the budget permits.
 
-Rollouts are **not** used for leaf evaluation in AlphaZero — the value network `V(s)` directly estimates the state's value. This is crucial: learned value replaces Monte-Carlo simulation, dramatically cutting per-search compute at the cost of needing to train `V`.
+Rollouts are **not** used for leaf evaluation in AlphaZero — the value network $V(s)$ directly estimates the state's value. This is crucial: learned value replaces Monte-Carlo simulation, dramatically cutting per-search compute at the cost of needing to train $V$.
 
 ### The four phases, annotated
 
@@ -98,7 +102,7 @@ BACKPROPAGATION:
         Q(s, a) += (v - Q(s, a)) / N(s, a)
 ```
 
-After a fixed search budget (number of simulations), pick the best move from the root — either highest visit count (more robust to value noise) or highest `Q`.
+After a fixed search budget (number of simulations), pick the best move from the root — either highest visit count (more robust to value noise) or highest $Q$.
 
 ---
 
@@ -113,10 +117,10 @@ All successful LLM-MCTS systems solve this by **coarsening the action**. The tri
 | System | Node / action | Value source | Notes |
 | --- | --- | --- | --- |
 | **Tree of Thoughts** (Yao 2023, BFS/DFS — not strictly MCTS) | Variable: "line of equation" (Game of 24), "paragraph" (writing), "few words" (crosswords) | LLM self-evaluation (vote/score prompt) | Prunes with top-b or state-eval threshold |
-| **TS-LLM** (Feng 2023) | Sentence-level or token-level (configurable) | Learned value network (AlphaZero-style) | Subsample `w` children during expansion |
+| **TS-LLM** (Feng 2023) | Sentence-level or token-level (configurable) | Learned value network (AlphaZero-style) | Subsample $w$ children during expansion |
 | **Math-Shepherd search** (Wang 2024) | Reasoning step | [PRM](prm.md) as step-level value | Step boundaries from format |
 | **ReST-MCTS*** (Zhang 2024) | Reasoning step (sentence-scale) | Learned PRM used as value | Self-bootstraps: search to generate training data for both policy and PRM |
-| **AlphaZero-for-reasoning (various)** | Sentence or step | Learned value net (PUCT) | Uses c_puct / AlphaZero machinery |
+| **AlphaZero-for-reasoning (various)** | Sentence or step | Learned value net (PUCT) | Uses $c_{\text{puct}}$ / AlphaZero machinery |
 
 The design principle that works: **a node is a unit the LLM can generate and evaluate meaningfully** — large enough that the LLM can judge its prospect (too small: "does the token `the` help?" is incoherent), small enough that you can enumerate candidates (too large: "is this whole essay good?" reduces to best-of-N).
 
@@ -146,9 +150,9 @@ Other groups disagree. **ReST-MCTS*** and related work continue to show gains fr
 
 ## Gotchas & tricks
 
-- **Branching factor is destiny.** If your action is a token, you have ~50k branches per step and a budget of ~1k simulations — you visit almost nothing. Either coarsen the action or use top-K filtered expansion. TS-LLM subsamples `w` children from the policy prior; ToT keeps top-b evaluated states.
+- **Branching factor is destiny.** If your action is a token, you have ~50k branches per step and a budget of ~1k simulations — you visit almost nothing. Either coarsen the action or use top-$K$ filtered expansion. TS-LLM subsamples $w$ children from the policy prior; ToT keeps top-b evaluated states.
 - **You need a value signal.** Classical MCTS uses rollouts to terminal; for LLM reasoning, rollouts are expensive and often uninformative (a random continuation rarely reaches the correct answer). You almost always need a **learned value** — either a PRM, an ORM, or a dedicated value net. Training it is a whole sub-project.
-- **AlphaZero's PUCT ≠ UCT.** If you see "MCTS with c_puct = 1.25" in an LLM paper, they mean AlphaZero-style PUCT with a neural-net prior, not raw UCT. The two have different exploration characteristics and different failure modes.
+- **AlphaZero's PUCT ≠ UCT.** If you see "MCTS with $c_{\text{puct}} = 1.25$" in an LLM paper, they mean AlphaZero-style PUCT with a neural-net prior, not raw UCT. The two have different exploration characteristics and different failure modes.
 - **Local optima from node caps.** Limiting expansion per node controls cost but can trap search. Mitigate with dynamic caps, stochastic expansion, or progressive widening.
 - **Self-improvement loops are brittle.** ReST-MCTS* and similar systems iterate: search to produce training data, train policy + value on that data, re-search. Drift and narrowing are real — keep a held-out eval.
 - **MCTS vs sampling: measure compute parity.** MCTS's headline gains are sometimes against best-of-N with a far smaller budget. Compare at equal FLOPs or equal wall-clock.
@@ -160,7 +164,7 @@ Other groups disagree. **ReST-MCTS*** and related work continue to show gains fr
 
 - Paper: *Efficient Selectivity and Backup Operators in Monte-Carlo Tree Search* — Coulom, 2006 — coins "Monte-Carlo Tree Search" and defines the four phases.
 - Paper: *Bandit based Monte-Carlo Planning* — Kocsis & Szepesvári, 2006 — introduces UCT (UCB1 applied to trees).
-- Paper: *A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play* — Silver et al., DeepMind, 2018 (*Science* 362:1140–1144; [arXiv 1712.01815](https://arxiv.org/abs/1712.01815)) — AlphaZero, PUCT selection with `c_base = 19,652`, `c_init = 1.25`, learned policy + value net, no rollouts.
+- Paper: *A general reinforcement learning algorithm that masters chess, shogi, and Go through self-play* — Silver et al., DeepMind, 2018 (*Science* 362:1140–1144; [arXiv 1712.01815](https://arxiv.org/abs/1712.01815)) — AlphaZero, PUCT selection with $c_{\text{base}} = 19{,}652$, $c_{\text{init}} = 1.25$, learned policy + value net, no rollouts.
 - Paper: *Tree of Thoughts: Deliberate Problem Solving with Large Language Models* — Yao et al., 2023, [arXiv 2305.10601](https://arxiv.org/abs/2305.10601) — BFS/DFS over LLM-generated "thoughts" with self-evaluation; MCTS listed as future work.
 - Paper: *Alphazero-like Tree-Search can Guide Large Language Model Decoding and Training* (TS-LLM) — Feng et al., 2023, [arXiv 2309.17179](https://arxiv.org/abs/2309.17179) — AlphaZero-style PUCT with learned value net; sentence-level or token-level actions.
 - Paper: *ReST-MCTS\*: LLM Self-Training via Process Reward Guided Tree Search* — Zhang et al., 2024, [arXiv 2406.03816](https://arxiv.org/abs/2406.03816) — MCTS over reasoning steps guided by a learned PRM.

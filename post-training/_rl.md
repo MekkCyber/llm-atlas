@@ -26,27 +26,27 @@ Most of the LLM-specific tricks (GRPO's group baseline, reference-model KL penal
 
 ## The shared pattern — the policy gradient
 
-All policy-gradient RL is the same basic equation. Let the model be a stochastic policy `π_θ(a|s)` over actions `a` given state `s`. The **expected return** is:
+All policy-gradient RL is the same basic equation. Let the model be a stochastic policy $\pi_\theta(a \mid s)$ over actions $a$ given state $s$. The **expected return** is:
 
-```
-J(θ) = E_{τ ~ π_θ} [ R(τ) ]
-```
+$$
+J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} [\, R(\tau) \,]
+$$
 
-where a trajectory `τ = (s_0, a_0, s_1, a_1, ...)` is whatever the agent does, and `R(τ)` is the total reward along that trajectory. We want to increase `J(θ)`.
+where a trajectory $\tau = (s_0, a_0, s_1, a_1, \ldots)$ is whatever the agent does, and $R(\tau)$ is the total reward along that trajectory. We want to increase $J(\theta)$.
 
 The **policy gradient theorem** says:
 
-```
-∇_θ J(θ) = E_{τ ~ π_θ} [ Σ_t ∇_θ log π_θ(a_t | s_t) · A_t ]
-```
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \!\left[ \sum_t \nabla_\theta \log \pi_\theta(a_t \mid s_t) \cdot A_t \right]
+$$
 
-Read as English: **the gradient is a weighted sum of log-probabilities of the actions you actually took, weighted by how "good" each action was** (the *advantage* `A_t`).
+Read as English: **the gradient is a weighted sum of log-probabilities of the actions you actually took, weighted by how "good" each action was** (the *advantage* $A_t$).
 
 Every RL algorithm in this taxonomy is *this equation* with different choices for:
 
 - **What counts as an action/state.** For LLMs: state = prompt + tokens so far, action = next token. The episode ends at EOS.
-- **How `A_t` is estimated.** Raw reward? Reward minus a baseline? A learned value function? Group-relative normalization?
-- **How `π_θ` is stepped.** Vanilla gradient step? Clipped ratio (PPO)? Closed-form update (DPO)?
+- **How $A_t$ is estimated.** Raw reward? Reward minus a baseline? A learned value function? Group-relative normalization?
+- **How $\pi_\theta$ is stepped.** Vanilla gradient step? Clipped ratio (PPO)? Closed-form update (DPO)?
 - **How we stop the policy from drifting.** KL penalty to a reference? Trust region? Nothing?
 
 Keeping this one equation in mind makes all the variants much less scary.
@@ -65,97 +65,99 @@ action a_t = the next token o_t
 policy π_θ(o_t | q, o_{<t}) = softmax over vocabulary, from the LLM
 ```
 
-A **trajectory** `(q, o_1, o_2, …, o_T)` is a complete response. The trajectory probability under `π_θ` is:
+A **trajectory** $(q, o_1, o_2, \ldots, o_T)$ is a complete response. The trajectory probability under $\pi_\theta$ is:
 
-```
-π_θ(o | q) = Π_t π_θ(o_t | q, o_{<t})
-```
+$$
+\pi_\theta(o \mid q) = \prod_t \pi_\theta(o_t \mid q, o_{<t})
+$$
 
-and `log π_θ(o|q) = Σ_t log π_θ(o_t | q, o_{<t})`. This is the same object the model outputs during pretraining (autoregressive likelihood) — we just call it a "policy" now because we're going to optimize it.
+and $\log \pi_\theta(o \mid q) = \sum_t \log \pi_\theta(o_t \mid q, o_{<t})$. This is the same object the model outputs during pretraining (autoregressive likelihood) — we just call it a "policy" now because we're going to optimize it.
 
 ### 2. Reward
 
 For LLM RL, the reward is almost always **terminal** — given at the end of the response, not per token:
 
-```
-R(q, o) = single scalar assigned to the full response
-```
+$$
+R(q, o) = \text{single scalar assigned to the full response}
+$$
 
 Different RL recipes disagree on where this scalar comes from:
 
-- **Rule-based verifier.** `R = 1` if the answer is correct, else `0`. Used by [RLVR](rlvr.md). See the [rewards taxonomy](_rewards.md).
-- **Learned preference reward model (RM).** `R = RM(q, o)`, a neural net trained on human preferences. Used by classical RLHF.
+- **Rule-based verifier.** $R = 1$ if the answer is correct, else $0$. Used by [RLVR](rlvr.md). See the [rewards taxonomy](_rewards.md).
+- **Learned preference reward model (RM).** $R = \mathrm{RM}(q, o)$, a neural net trained on human preferences. Used by classical RLHF.
 - **Process reward model.** Per-step scores aggregated (min, product, average). See [prm](reasoning/prm.md).
 - **Outcome reward model.** Learned classifier on "is this solution correct." See [orm](reasoning/orm.md).
-- **Composite.** Sum of the above, e.g., `R = r_accuracy + r_format + r_language` (R1's Stage 2 does this).
+- **Composite.** Sum of the above, e.g., $R = r_{\text{accuracy}} + r_{\text{format}} + r_{\text{language}}$ (R1's Stage 2 does this).
 
 The single scalar is broadcast to all tokens in the response when computing the policy gradient (unless the reward is explicitly per-step, as with a PRM used as reward shaping rather than reranker).
 
 ### 3. Baseline and advantage
 
-The raw return `R(τ)` has **high variance**: some prompts are hard, some easy, and the policy gradient can be dominated by which prompts came up in the batch. The fix is to subtract a **baseline** `b(s)`:
+The raw return $R(\tau)$ has **high variance**: some prompts are hard, some easy, and the policy gradient can be dominated by which prompts came up in the batch. The fix is to subtract a **baseline** $b(s)$:
 
-```
+$$
 A_t = R - b(s_t)
-```
+$$
 
-Any `b` that doesn't depend on the action keeps the gradient unbiased but reduces variance. Common choices:
+Any $b$ that doesn't depend on the action keeps the gradient unbiased but reduces variance. Common choices:
 
 | Baseline | Who uses it | Cost |
 | --- | --- | --- |
 | Zero (no baseline) | Vanilla REINFORCE | Noisy |
 | Per-prompt running mean | Old tricks | Cheap |
-| **Learned value network `V(s)`** | PPO, classical RLHF | Train a second ~LLM-sized model |
-| **Group mean over K rollouts** | **[GRPO](grpo.md)**, modern default for reasoning | Free once you're already sampling K per prompt |
+| **Learned value network $V(s)$** | PPO, classical RLHF | Train a second ~LLM-sized model |
+| **Group mean over $K$ rollouts** | **[GRPO](grpo.md)**, modern default for reasoning | Free once you're already sampling $K$ per prompt |
 
-GRPO's choice — skip the value network and use the empirical mean of K rollouts from the same prompt — is the biggest practical speedup over PPO for LLMs, and why it's the default for verifiable-reward RL.
+GRPO's choice — skip the value network and use the empirical mean of $K$ rollouts from the same prompt — is the biggest practical speedup over PPO for LLMs, and why it's the default for verifiable-reward RL.
 
 When the reward is sparse and binary (RLVR), the group std is also useful:
 
-```
-A_i = (r_i - mean(r_1..r_G)) / std(r_1..r_G)
-```
+$$
+A_i = \frac{r_i - \mathrm{mean}(r_1, \ldots, r_G)}{\mathrm{std}(r_1, \ldots, r_G)}
+$$
 
 This **normalizes** the advantage so the update magnitude is independent of how hard the prompt is. Hard prompts with low reward variance give small updates; easy prompts with high variance give big ones. Self-regulating.
 
 ### 4. The KL penalty and the reference model
 
-If you just maximize `R`, the policy will drift toward whatever the reward function happens to reward — often degenerate. Two canonical failure modes:
+If you just maximize $R$, the policy will drift toward whatever the reward function happens to reward — often degenerate. Two canonical failure modes:
 
 - **Reward hacking** — model discovers a trick the verifier accepts but humans wouldn't. Especially bad for learned RMs.
 - **Capability loss** — model's general language quality degrades because the RL reward doesn't care about fluency or honesty.
 
-The fix used everywhere is a **KL penalty to a reference model** `π_ref` (usually the SFT checkpoint, or the base model if there's no SFT):
+The fix used everywhere is a **KL penalty to a reference model** $\pi_{\text{ref}}$ (usually the SFT checkpoint, or the base model if there's no SFT):
 
-```
-L = -E[R(τ)] + β · E[ KL( π_θ || π_ref ) ]
-```
+$$
+L = -\mathbb{E}[R(\tau)] + \beta \cdot \mathbb{E}[\, \mathrm{KL}( \pi_\theta \,\|\, \pi_{\text{ref}} ) \,]
+$$
 
-With `β ∈ [0.001, 0.1]`. Read as English: *"maximize reward, but stay close to the reference policy."* The KL is computed per token:
+With $\beta \in [0.001, 0.1]$. Read as English: *"maximize reward, but stay close to the reference policy."* The KL is computed per token:
 
-```
-KL( π_θ || π_ref ) = Σ_t Σ_v  π_θ(v|...) · log( π_θ(v|...) / π_ref(v|...) )
-```
+$$
+\mathrm{KL}( \pi_\theta \,\|\, \pi_{\text{ref}} ) = \sum_t \sum_v \pi_\theta(v \mid \ldots) \cdot \log\!\frac{\pi_\theta(v \mid \ldots)}{\pi_{\text{ref}}(v \mid \ldots)}
+$$
 
 In practice it's estimated by a single-sample estimator:
 
-```
-KL ≈ log π_θ(o_t|...) - log π_ref(o_t|...)
-```
+$$
+\mathrm{KL} \approx \log \pi_\theta(o_t \mid \ldots) - \log \pi_{\text{ref}}(o_t \mid \ldots)
+$$
 
 The reference model is **frozen**. It's the "anchor" that keeps your RL run from turning the policy into a reward-hacking monster.
 
 ### 5. The PPO clip
 
-Policy gradient says *make the log-probability of good actions go up*. Naively taking a big gradient step can push the policy so far that the `π_θ_old` used to sample the trajectory is no longer representative of `π_θ` — the update becomes off-policy and unstable. PPO's fix is the **clipped ratio**:
+Policy gradient says *make the log-probability of good actions go up*. Naively taking a big gradient step can push the policy so far that the $\pi_{\theta_{\text{old}}}$ used to sample the trajectory is no longer representative of $\pi_\theta$ — the update becomes off-policy and unstable. PPO's fix is the **clipped ratio**:
 
-```
-r_t(θ) = π_θ(a_t | s_t) / π_θ_old(a_t | s_t)
+$$
+r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}
+$$
 
-L_PPO = E [ min( r_t · A_t,  clip(r_t, 1-ε, 1+ε) · A_t ) ]
-```
+$$
+L_{\text{PPO}} = \mathbb{E} \!\left[ \min( r_t \cdot A_t,\; \mathrm{clip}(r_t, 1-\epsilon, 1+\epsilon) \cdot A_t ) \right]
+$$
 
-with `ε = 0.2` standard. English: *"increase the probability of good actions — but clip the increase so you can't push it more than 20% per step."* The `min(…)` formulation means: for positive advantage, clip the upside; for negative advantage, clip the downside. Pessimistic either way.
+with $\epsilon = 0.2$ standard. English: *"increase the probability of good actions — but clip the increase so you can't push it more than 20% per step."* The $\min(\ldots)$ formulation means: for positive advantage, clip the upside; for negative advantage, clip the downside. Pessimistic either way.
 
 PPO is the algorithm behind classical RLHF ([InstructGPT](https://arxiv.org/abs/2203.02155)) and remains the default when you have a learned value network. For LLMs with a sparse verifier, [GRPO](grpo.md) replaces the value network with a group-mean baseline but keeps the PPO clip.
 
@@ -163,36 +165,31 @@ PPO is the algorithm behind classical RLHF ([InstructGPT](https://arxiv.org/abs/
 
 Combining everything above, the [GRPO](grpo.md) objective is:
 
-```
-J_GRPO(θ) = E_{q, {o_i}~π_old} [
-    (1/G) Σ_i min( r_i(θ) · A_i,
-                   clip(r_i(θ), 1-ε, 1+ε) · A_i )
-    - β · KL( π_θ || π_ref )
-]
-```
+$$
+J_{\text{GRPO}}(\theta) = \mathbb{E}_{q,\, \{o_i\} \sim \pi_{\text{old}}} \!\left[ \frac{1}{G} \sum_i \min( r_i(\theta) \cdot A_i,\; \mathrm{clip}(r_i(\theta), 1-\epsilon, 1+\epsilon) \cdot A_i ) - \beta \cdot \mathrm{KL}( \pi_\theta \,\|\, \pi_{\text{ref}} ) \right]
+$$
 
 with
 
-```
-r_i(θ) = π_θ(o_i | q) / π_θ_old(o_i | q)
-A_i    = (r_i - mean(r_1..r_G)) / std(r_1..r_G)
-```
+$$
+r_i(\theta) = \frac{\pi_\theta(o_i \mid q)}{\pi_{\theta_{\text{old}}}(o_i \mid q)} \qquad A_i = \frac{r_i - \mathrm{mean}(r_1, \ldots, r_G)}{\mathrm{std}(r_1, \ldots, r_G)}
+$$
 
-Pieces, matched to concepts 1–5 above: `π_θ/π_θ_old` ratio (PPO clip); `A_i` group-relative (GRPO baseline); `r_i` scalar terminal reward from a [rule-based verifier](rlvr.md) or learned RM; `β · KL` pulls back toward `π_ref`.
+Pieces, matched to concepts 1–5 above: $\pi_\theta / \pi_{\theta_{\text{old}}}$ ratio (PPO clip); $A_i$ group-relative (GRPO baseline); $r_i$ scalar terminal reward from a [rule-based verifier](rlvr.md) or learned RM; $\beta \cdot \mathrm{KL}$ pulls back toward $\pi_{\text{ref}}$.
 
 ### 7. Online vs offline RL (and where DPO sits)
 
 **Online RL** samples fresh rollouts from the current policy every step. PPO, GRPO, and all the "reasoning RL" papers are online.
 
-**Offline RL** works from a fixed dataset of `(prompt, response, reward)` tuples, updating the policy without new samples. Much cheaper per step; no need for a rollout infrastructure.
+**Offline RL** works from a fixed dataset of $(\text{prompt}, \text{response}, \text{reward})$ tuples, updating the policy without new samples. Much cheaper per step; no need for a rollout infrastructure.
 
-**DPO** (Direct Preference Optimization) is the offline cousin of RLHF. It starts from the same RLHF objective — maximize preference-RM reward with a KL penalty to `π_ref` — and shows that for **pairwise preference data** the optimal policy has a closed form:
+**DPO** (Direct Preference Optimization) is the offline cousin of RLHF. It starts from the same RLHF objective — maximize preference-RM reward with a KL penalty to $\pi_{\text{ref}}$ — and shows that for **pairwise preference data** the optimal policy has a closed form:
 
-```
-π*(o|q) ∝ π_ref(o|q) · exp( R(q,o) / β )
-```
+$$
+\pi^*(o \mid q) \propto \pi_{\text{ref}}(o \mid q) \cdot \exp\!\left( \frac{R(q, o)}{\beta} \right)
+$$
 
-Rearranging to express `R` as a log-ratio of policies, you can eliminate `R` entirely and train directly on preferences. No reward model, no rollouts. See the [preference section of _post-training](_post-training.md).
+Rearranging to express $R$ as a log-ratio of policies, you can eliminate $R$ entirely and train directly on preferences. No reward model, no rollouts. See the [preference section of _post-training](_post-training.md).
 
 DPO is the modern default when your training signal is human preferences. PPO/GRPO are the defaults when your signal is a scalar reward you can evaluate at train time.
 
@@ -204,10 +201,10 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | --- | --- | --- | --- | --- | --- |
 | **REINFORCE** | Any scalar | Raw return | None | No | Toy/historical |
 | **[PPO](ppo.md)** (classical RLHF) | Learned preference RM | Value-network baseline | PPO clip | Yes | General RLHF; still used at frontier labs |
-| **[GRPO](grpo.md)** | Any scalar | Group-relative (K rollouts, z-score) | PPO clip | **No** | Modern default for reasoning RL / verifiable rewards |
-| **[Online policy mirror descent](reasoning/online-policy-mirror-descent.md)** | Any scalar | Group-relative (K rollouts, mean only) | ℓ₂ on log-ratios (no clip) | No | Kimi k1.5's long-CoT RL; principled-derivation alternative to GRPO |
+| **[GRPO](grpo.md)** | Any scalar | Group-relative ($K$ rollouts, z-score) | PPO clip | **No** | Modern default for reasoning RL / verifiable rewards |
+| **[Online policy mirror descent](reasoning/online-policy-mirror-descent.md)** | Any scalar | Group-relative ($K$ rollouts, mean only) | $\ell_2$ on log-ratios (no clip) | No | Kimi k1.5's long-CoT RL; principled-derivation alternative to GRPO |
 | **[RLVR](rlvr.md)** | Rule-based verifier | GRPO- or mirror-descent-style | Either | No | Math, code, format — anywhere correctness is checkable |
-| **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or ℓ₂ | No | Eliciting reasoning from a strong base without CoT SFT |
+| **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
 

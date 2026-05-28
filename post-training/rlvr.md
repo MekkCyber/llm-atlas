@@ -22,11 +22,11 @@ The reward model is the weak link: it's trained on finite human preferences, can
 
 **RLVR replaces step 2 entirely.** The reward function is a **programmatic verifier**:
 
-```
-reward(prompt, response) ∈ {0, 1}   # or scalar in [0, 1]
-```
+$$
+\mathrm{reward}(\mathrm{prompt}, \mathrm{response}) \in \{0, 1\} \quad \text{or scalar in } [0, 1]
+$$
 
-where `reward` is deterministic code that checks some verifiable property:
+where $\mathrm{reward}$ is deterministic code that checks some verifiable property:
 
 - Math: does `extract_final_answer(response) == reference_answer`?
 - Code: do the unit tests pass?
@@ -91,7 +91,7 @@ The algorithm is boring PPO/GRPO — the **ML judgment goes into the verifier**.
 
 - **Only works for verifiable domains.** You cannot do RLVR for "is this response helpful" or "is this tone appropriate" — those require human judgment. Pair RLVR with DPO for the non-verifiable style/refusal axes.
 - **Reward sparsity at init.** If the pre-RLVR model can't solve *any* of the problems, every reward is 0 and gradients are zero. Use SFT beforehand to bootstrap success rate above ~5–10%, or start with easier problems and curriculum up.
-- **KL penalty still needed.** Without it, the policy can drift off-distribution to maximize the narrow verifier signal, losing general capabilities. β in the 0.01–0.1 range is typical.
+- **KL penalty still needed.** Without it, the policy can drift off-distribution to maximize the narrow verifier signal, losing general capabilities. $\beta$ in the 0.01–0.1 range is typical.
 - **Watch for verifier gaming.** Monitor a held-out eval where the verifier is stricter (or human-judged) than the training verifier. Divergence between training-verifier reward and held-out quality is the canary.
 - **Mix verifier types in one run.** Math verifier + code verifier + format verifier, chosen per prompt by dataset tag. Keeps the model from overspecializing on one signal.
 - **GRPO > PPO here.** GRPO's group-relative advantage removes the need for a value model — with binary rewards and K rollouts per prompt, there's nothing for a value model to learn that the group mean can't give you.

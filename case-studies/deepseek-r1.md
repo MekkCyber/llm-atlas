@@ -221,7 +221,7 @@ These failures are part of the paper's contribution: they argue that the frontie
 
 ## What's still opaque
 
-- **Exact GRPO hyperparameters** — group size `G`, clip `ε`, KL coefficient `β`, optimizer settings, learning rate, batch size. Not disclosed for R1 or R1-Zero.
+- **Exact GRPO hyperparameters** — group size $G$, clip $\epsilon$, KL coefficient $\beta$, optimizer settings, learning rate, batch size. Not disclosed for R1 or R1-Zero.
 - **Training-step counts** for each stage. The paper says "until convergence" for Stage 2 and mentions ">10,000 steps" only for the 32B control experiment.
 - **Stage 1 dataset size** is stated as "thousands" but not given precisely.
 - **Preference RM details** (Stage 4) — data, size, architecture.

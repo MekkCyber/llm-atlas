@@ -25,9 +25,9 @@ Picking the reward type is mostly about trading these three off for your task.
 
 Every LLM RL reward has this shape:
 
-```
-R(prompt, response) → scalar   (possibly vector, if combined)
-```
+$$
+R(\text{prompt}, \text{response}) \to \text{scalar} \quad \text{(possibly vector, if combined)}
+$$
 
 Variants differ in **who produces the scalar**:
 
@@ -59,7 +59,7 @@ See: [rlvr](rlvr.md), [long-cot-rl](reasoning/long-cot-rl.md).
 
 ### 2. Outcome Reward Model ([ORM](reasoning/orm.md))
 
-**Signal:** a learned LM with a scalar head, trained on `(prompt, solution, correct_final_answer ∈ {0,1})` labels — where the label comes from a rule verifier at training time but the ORM generalizes to prompts where no verifier is available.
+**Signal:** a learned LM with a scalar head, trained on $(\text{prompt}, \text{solution}, \text{correct\_final\_answer} \in \{0,1\})$ labels — where the label comes from a rule verifier at training time but the ORM generalizes to prompts where no verifier is available.
 
 **Pros.** Generalizes beyond the domain where you have rule verifiers. Cheaper than PRMs (no step-level labels). Surprisingly strong — Uesato 2022 showed ORM-RL ties PRM-RL on GSM8K.
 
@@ -93,7 +93,7 @@ See: [cot-reward-model](cot-reward-model.md).
 
 ### 4. Preference Reward Model (classical RLHF)
 
-**Signal:** learned LM trained on human pairwise preferences (A > B for prompt q). Scores whole responses by a scalar that is monotonic in preference.
+**Signal:** learned LM trained on human pairwise preferences ($A > B$ for prompt $q$). Scores whole responses by a scalar that is monotonic in preference.
 
 **Pros.** Works for open-ended tasks where "correct" isn't defined (helpfulness, tone, creative writing). The only reward type that captures human aesthetic judgments at scale.
 
@@ -111,9 +111,9 @@ Common examples:
 
 | Shaping term | What it does | Where used |
 | --- | --- | --- |
-| Format reward | `+1` if response matches a required schema (XML tags, JSON) | R1-Zero, RLVR |
+| Format reward | $+1$ if response matches a required schema (XML tags, JSON) | R1-Zero, RLVR |
 | Language-consistency reward | Proportion of target-language words in CoT | R1 Stage 2 |
-| **[Length penalty](reasoning/length-penalty.md)** | Group-relative linear `±0.5` reward; `min(0, λ)` floor for incorrect responses | Kimi k1.5 — fights overthinking in long-CoT RL |
+| **[Length penalty](reasoning/length-penalty.md)** | Group-relative linear $\pm 0.5$ reward; $\min(0, \lambda)$ floor for incorrect responses | Kimi k1.5 — fights overthinking in long-CoT RL |
 | Repetition penalty | Penalize n-gram repeats | Various (e.g., Kimi's [partial-rollouts](../systems/partial-rollouts.md) system) |
 
 **Pros.** Cheap, targeted, composable.

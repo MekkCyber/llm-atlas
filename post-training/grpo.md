@@ -1,10 +1,10 @@
 # Group Relative Policy Optimization (GRPO)
 *Depth — one specific technique, grounded in its source paper(s).*
 
-**TL;DR:** A simplified PPO variant that removes the value (critic) network. For each prompt, sample `G` responses from the current policy, compute each response's reward, then use the **group's mean and standard deviation as a baseline** to normalize advantages. The rest of the update is standard PPO — clipped ratio with a KL penalty toward a reference model. Introduced in DeepSeekMath (2024), now the default policy-optimization algorithm for reasoning RL and RLVR pipelines.
+**TL;DR:** A simplified PPO variant that removes the value (critic) network. For each prompt, sample $G$ responses from the current policy, compute each response's reward, then use the **group's mean and standard deviation as a baseline** to normalize advantages. The rest of the update is standard PPO — clipped ratio with a KL penalty toward a reference model. Introduced in DeepSeekMath (2024), now the default policy-optimization algorithm for reasoning RL and RLVR pipelines.
 
-**Prereqs:** [ppo](ppo.md), [_rl](_rl.md) (policy gradients, KL divergence).
-**Related:** [rlvr](rlvr.md) · [long-cot-rl](reasoning/long-cot-rl.md) · [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md) · [dpo](dpo.md) · [_rewards](_rewards.md) · [deepseek-r1 case study](../case-studies/deepseek-r1.md) · [kimi-k1-5 case study](../case-studies/kimi-k1-5.md)
+**Prereqs:** [ppo.md](./ppo.md), [_rl.md](./_rl.md) (policy gradients, KL divergence).
+**Related:** [rlvr.md](./rlvr.md) · [long-cot-rl.md](./reasoning/long-cot-rl.md) · [online-policy-mirror-descent.md](./reasoning/online-policy-mirror-descent.md) · [dpo.md](./dpo.md) · [_rewards.md](./_rewards.md) · [deepseek-r1.md](./../case-studies/deepseek-r1.md) · [kimi-k1-5.md](./../case-studies/kimi-k1-5.md)
 
 ---
 
@@ -12,9 +12,9 @@
 
 Standard **PPO** for LLMs pairs a policy network (the model being trained) with a **value network** — a separate copy of the model with a scalar-output head that predicts the expected reward-to-go at each token position. The value network is used as the advantage baseline:
 
-```
-A_t = R_t - V(s_t)              ← advantage, reduces variance of policy gradient
-```
+$$
+A_t = R_t - V(s_t) \quad \text{(advantage, reduces variance of policy gradient)}
+$$
 
 The value network is expensive: you train a second model of comparable size, with its own loss, and you pay its forward/backward cost on every RL step. For LLMs where the policy already has 10s to 100s of billions of parameters, the value network ~doubles RL compute.
 
@@ -26,75 +26,75 @@ The value network is expensive: you train a second model of comparable size, wit
 
 ### The sampling step
 
-For each prompt `q` in the RL batch, sample `G` full responses from the current policy `π_θ^old`:
+For each prompt $q$ in the RL batch, sample $G$ full responses from the current policy $\pi_{\theta_{\text{old}}}$:
 
-```
-{ o_1, o_2, ..., o_G } ~ π_θ^old( · | q )
-```
+$$
+\{ o_1, o_2, \ldots, o_G \} \sim \pi_{\theta_{\text{old}}}(\,\cdot\, \mid q)
+$$
 
-`G = 4` to `G = 64` typical; `G = 16` is common. Higher `G` gives lower-variance advantage estimates but multiplies per-prompt rollout cost.
+$G = 4$ to $G = 64$ typical; $G = 16$ is common. Higher $G$ gives lower-variance advantage estimates but multiplies per-prompt rollout cost.
 
 ### Compute rewards
 
-Each response gets a scalar reward `r_i`:
+Each response gets a scalar reward $r_i$:
 
-```
+$$
 r_i = R(q, o_i)
-```
+$$
 
-Where `R` is whatever reward function you use — rule-based verifier (for RLVR: math answer match, unit test pass, format check), model-based reward (for RLHF-style), or some combination. Rewards are per-response, not per-token.
+Where $R$ is whatever reward function you use — rule-based verifier (for RLVR: math answer match, unit test pass, format check), model-based reward (for RLHF-style), or some combination. Rewards are per-response, not per-token.
 
 ### Group-relative advantage
 
 Compute the group's reward statistics:
 
-```
-r̄ = (1/G) · Σ_i r_i              ← mean
-σ_r = std(r_1, ..., r_G)
+$$
+\bar{r} = \frac{1}{G} \sum_{i=1}^{G} r_i \qquad \sigma_r = \mathrm{std}(r_1, \ldots, r_G)
+$$
 
-A_i = (r_i - r̄) / σ_r             ← normalized advantage, broadcast to all tokens in o_i
-```
+$$
+A_i = \frac{r_i - \bar{r}}{\sigma_r} \quad \text{(normalized advantage, broadcast to all tokens in } o_i\text{)}
+$$
 
-This `A_i` is the advantage assigned to **every token** of response `o_i`. It's a single scalar per response, not per-token — all tokens in a response share the same advantage signal.
+This $A_i$ is the advantage assigned to **every token** of response $o_i$. It's a single scalar per response, not per-token — all tokens in a response share the same advantage signal.
 
-The normalization by `σ_r` matters: it makes the RL update invariant to the reward function's absolute scale. If all responses get very similar rewards (σ_r ≈ 0), the advantages are small (noisy) and the policy barely moves — exactly the right behavior.
+The normalization by $\sigma_r$ matters: it makes the RL update invariant to the reward function's absolute scale. If all responses get very similar rewards ($\sigma_r \approx 0$), the advantages are small (noisy) and the policy barely moves — exactly the right behavior.
 
 ### PPO-clipped policy update
 
 With advantages in hand, the policy update is standard PPO:
 
-```
-ratio_{i,t}(θ) = π_θ(o_{i,t} | q, o_{i,<t}) / π_θ^old(o_{i,t} | q, o_{i,<t})
+$$
+\text{ratio}_{i,t}(\theta) = \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}
+$$
 
-L_CLIP = - (1/G) · Σ_i (1/|o_i|) · Σ_t  min(
-    ratio_{i,t} · A_i,
-    clip(ratio_{i,t}, 1-ε, 1+ε) · A_i
-)
-```
+$$
+L_{\text{CLIP}} = -\frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t} \min\!\left( \text{ratio}_{i,t} \cdot A_i,\; \mathrm{clip}(\text{ratio}_{i,t}, 1-\epsilon, 1+\epsilon) \cdot A_i \right)
+$$
 
-where `ε = 0.2` is the PPO clip parameter, standard.
+where $\epsilon = 0.2$ is the PPO clip parameter, standard.
 
 ### KL regularization to a reference model
 
-Add a KL penalty between the current policy and a fixed **reference model** `π_ref` (usually the SFT checkpoint or the pretraining base):
+Add a KL penalty between the current policy and a fixed **reference model** $\pi_{\text{ref}}$ (usually the SFT checkpoint or the pretraining base):
 
-```
-L_KL = β · (1/G) · Σ_i (1/|o_i|) · Σ_t  KL( π_ref( · | ...)  ||  π_θ( · | ...) )
-```
+$$
+L_{\text{KL}} = \beta \cdot \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t} \mathrm{KL}\!\left( \pi_{\text{ref}}(\,\cdot\, \mid \ldots) \,\|\, \pi_\theta(\,\cdot\, \mid \ldots) \right)
+$$
 
-`β = 0.01` to `0.1` typical. The KL term prevents the policy from drifting too far from `π_ref` and losing general capabilities.
+$\beta = 0.01$ to $0.1$ typical. The KL term prevents the policy from drifting too far from $\pi_{\text{ref}}$ and losing general capabilities.
 
 ### Full objective
 
-```
-L_GRPO = L_CLIP + L_KL
-```
+$$
+L_{\text{GRPO}} = L_{\text{CLIP}} + L_{\text{KL}}
+$$
 
-There's no value-function loss (no critic to train) and no explicit entropy bonus (the KL to `π_ref` handles exploration implicitly).
+There's no value-function loss (no critic to train) and no explicit entropy bonus (the KL to $\pi_{\text{ref}}$ handles exploration implicitly).
 
 ### Token-level vs response-level rewards
 
-GRPO as written assigns the same `A_i` to every token of response `o_i`. This is fine for verifiable-reward setups where only the final answer matters (math: is the answer correct; code: do the tests pass). For settings where some tokens contribute more than others (e.g. preference-reward models that can score partial outputs), you'd want a token-level advantage — GRPO isn't designed for that; use PPO with a value network instead.
+GRPO as written assigns the same $A_i$ to every token of response $o_i$. This is fine for verifiable-reward setups where only the final answer matters (math: is the answer correct; code: do the tests pass). For settings where some tokens contribute more than others (e.g. preference-reward models that can score partial outputs), you'd want a token-level advantage — GRPO isn't designed for that; use PPO with a value network instead.
 
 ---
 
@@ -104,23 +104,23 @@ GRPO as written assigns the same `A_i` to every token of response `o_i`. This is
 - **Better baseline for sparse rewards.** The group mean is empirically a better variance-reduction baseline than a learned value network when rewards are sparse (binary correct/incorrect) and the value network has little to learn from. Especially true for reasoning RL.
 - **No value-head warmstart problem.** PPO's value network needs its own warmup and can be unstable early in RL training (its predictions are bad before it's seen many rollouts). GRPO sidesteps this entirely.
 - **Standard RL algorithm for reasoning.** Used in DeepSeekMath, DeepSeek-R1, DeepSeek-V3's post-training, and nearly every subsequent reasoning-RL paper in 2024–2025. When people say "RL with verifiable rewards," they mean GRPO (or a close variant) with rule-based rewards.
-- **Runs the entire reasoning pipeline of R1-class models.** DeepSeek-R1 uses GRPO in **both** RL stages — Stage 2 (reasoning-oriented RL on a cold-start SFT checkpoint, with rule-based accuracy + format + **language-consistency** rewards summed directly) and Stage 4 (all-scenarios RL combining rule-based rewards for reasoning with learned preference RMs for helpfulness/harmlessness). R1-Zero further shows GRPO + rule rewards can drive reasoning *from a pretrained base*, no SFT at all — see [long-cot-rl](reasoning/long-cot-rl.md).
+- **Runs the entire reasoning pipeline of R1-class models.** DeepSeek-R1 uses GRPO in **both** RL stages — Stage 2 (reasoning-oriented RL on a cold-start SFT checkpoint, with rule-based accuracy + format + **language-consistency** rewards summed directly) and Stage 4 (all-scenarios RL combining rule-based rewards for reasoning with learned preference RMs for helpfulness/harmlessness). R1-Zero further shows GRPO + rule rewards can drive reasoning *from a pretrained base*, no SFT at all — see [long-cot-rl.md](./reasoning/long-cot-rl.md).
 
 ---
 
 ## Gotchas & tricks
 
-- **`G` is a tradeoff.** Small `G` (4, 8): cheap but noisy advantages. Large `G` (64, 128): low-variance but expensive rollouts. `G = 16` is the common default.
-- **Normalization by `σ_r` can blow up.** If all `r_i` are identical, `σ_r = 0` and dividing is undefined. Standard implementations add a small epsilon or fall back to `A_i = r_i - r̄` (no normalization).
-- **KL term is non-negotiable.** Without it, the policy collapses to reward-hacking outputs that maximize the verifier but are garbage in general capability. `β` in the 0.01–0.1 range; tune downward over training as the policy stabilizes.
-- **Reward scaling matters.** Because `σ_r` normalizes within a group, the absolute reward scale doesn't matter *within a prompt*, but if different prompts have wildly different reward magnitudes, the contribution to the gradient is uneven. Sometimes people add an outer normalization across the batch, but the paper doesn't.
+- $G$ **is a tradeoff.** Small $G$ (4, 8): cheap but noisy advantages. Large $G$ (64, 128): low-variance but expensive rollouts. $G = 16$ is the common default.
+- **Normalization by** $\sigma_r$ **can blow up.** If all $r_i$ are identical, $\sigma_r = 0$ and dividing is undefined. Standard implementations add a small epsilon or fall back to $A_i = r_i - \bar{r}$ (no normalization).
+- **KL term is non-negotiable.** Without it, the policy collapses to reward-hacking outputs that maximize the verifier but are garbage in general capability. $\beta$ in the 0.01–0.1 range; tune downward over training as the policy stabilizes.
+- **Reward scaling matters.** Because $\sigma_r$ normalizes within a group, the absolute reward scale doesn't matter *within a prompt*, but if different prompts have wildly different reward magnitudes, the contribution to the gradient is uneven. Sometimes people add an outer normalization across the batch, but the paper doesn't.
 - **Advantages are per-response, broadcast over tokens.** Not per-token. This is simpler to implement than PPO's per-token advantages but gives up the ability to distinguish which tokens in a response were the important ones. For verifiable rewards this doesn't matter; for fine-grained rewards it can.
-- **Off-policy drift.** The `π_θ^old` you sample from is typically the policy at the start of the current step (or a few steps ago in mini-batched updates). After enough inner optimization steps, the ratio `π_θ / π_θ^old` drifts, and the PPO clip starts constraining every update. Small mini-batch counts (1–4 inner steps) are typical.
+- **Off-policy drift.** The $\pi_{\theta_{\text{old}}}$ you sample from is typically the policy at the start of the current step (or a few steps ago in mini-batched updates). After enough inner optimization steps, the ratio $\pi_\theta / \pi_{\theta_{\text{old}}}$ drifts, and the PPO clip starts constraining every update. Small mini-batch counts (1–4 inner steps) are typical.
 - **Entropy collapse.** Without an explicit entropy bonus, the policy can sharpen to near-deterministic — bad for exploration and sometimes bad for quality. If you see acceptance rates dropping or all responses converging, either add a small entropy bonus or increase the KL coefficient.
-- **Works best with verifiable rewards.** GRPO's variance-reduction trick assumes the reward function is cheap to evaluate on many samples per prompt. For expensive reward models (a large learned RM queried per response), the `G`-way rollout becomes the bottleneck and PPO-with-value-net may be cheaper.
+- **Works best with verifiable rewards.** GRPO's variance-reduction trick assumes the reward function is cheap to evaluate on many samples per prompt. For expensive reward models (a large learned RM queried per response), the $G$-way rollout becomes the bottleneck and PPO-with-value-net may be cheaper.
 - **Don't confuse with REINFORCE with baseline.** REINFORCE is single-sample; GRPO is multi-sample with group baseline. The sampling structure is the whole point.
-- **Composite rewards compose by direct sum.** Papers that combine signals (e.g., R1's *accuracy + format + language-consistency*) sum them before computing `A_i`. The group normalization then handles the overall scale. Note this is a real alignment-vs-capability lever: R1 observed that adding the language-consistency term slightly reduces benchmark scores but produces much cleaner CoT — the tradeoff is worth naming explicitly.
-- **Hyperparameters from the original paper are unspecified at scale.** DeepSeek-R1 uses GRPO but doesn't disclose `G`, `ε`, or `β` for the R1 runs. For reproduction, open implementations (veRL, TRL, OpenRLHF) default to `G ∈ {8, 16}`, `ε = 0.2`, `β ∈ {0.001, 0.04}`. Treat these as starting points, not canonical values.
+- **Composite rewards compose by direct sum.** Papers that combine signals (e.g., R1's *accuracy + format + language-consistency*) sum them before computing $A_i$. The group normalization then handles the overall scale. Note this is a real alignment-vs-capability lever: R1 observed that adding the language-consistency term slightly reduces benchmark scores but produces much cleaner CoT — the tradeoff is worth naming explicitly.
+- **Hyperparameters from the original paper are unspecified at scale.** DeepSeek-R1 uses GRPO but doesn't disclose $G$, $\epsilon$, or $\beta$ for the R1 runs. For reproduction, open implementations (veRL, TRL, OpenRLHF) default to $G \in \{8, 16\}$, $\epsilon = 0.2$, $\beta \in \{0.001, 0.04\}$. Treat these as starting points, not canonical values.
 
 ---
 
@@ -129,10 +129,10 @@ GRPO as written assigns the same `A_i` to every token of response `o_i`. This is
 - Paper: *DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models* — Shao et al., DeepSeek, 2024 — introduces GRPO.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — applies GRPO with hybrid rule-based + model-based rewards.
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale reasoning RL using GRPO with verifiable rewards; R1-Zero uses GRPO from base with no SFT, R1 uses GRPO in Stages 2 and 4 of a 4-stage pipeline.
-- Paper: *Proximal Policy Optimization Algorithms* — Schulman et al., 2017 — the PPO baseline GRPO simplifies. See [ppo](ppo.md).
+- Paper: *Proximal Policy Optimization Algorithms* — Schulman et al., 2017 — the PPO baseline GRPO simplifies. See [ppo.md](./ppo.md).
 
 ---
 
 ## Mirror-descent sibling
 
-**Kimi k1.5** (2025) derives a closely-related algorithm from a different starting point: KL-regularized expected-reward RL solved iteratively via mirror descent, with an ℓ₂-regression surrogate on log policy ratios instead of PPO's clipped ratio. Both algorithms are value-network-free and use a group-mean reward baseline; they differ in surrogate form (**ℓ₂ regression** vs **clipped PPO ratio**), baseline normalization (**mean only** vs **z-score**), and reference-update schedule (**per-iteration with optimizer reset** vs **rolling**). The two can be viewed as two design points in the same family — see [online-policy-mirror-descent](reasoning/online-policy-mirror-descent.md) for the full math and the GRPO↔mirror-descent contrast table.
+**Kimi k1.5** (2025) derives a closely-related algorithm from a different starting point: KL-regularized expected-reward RL solved iteratively via mirror descent, with an $\ell_2$-regression surrogate on log policy ratios instead of PPO's clipped ratio. Both algorithms are value-network-free and use a group-mean reward baseline; they differ in surrogate form ($\ell_2$ **regression** vs **clipped PPO ratio**), baseline normalization (**mean only** vs **z-score**), and reference-update schedule (**per-iteration with optimizer reset** vs **rolling**). The two can be viewed as two design points in the same family — see [online-policy-mirror-descent.md](./reasoning/online-policy-mirror-descent.md) for the full math and the GRPO↔mirror-descent contrast table.
