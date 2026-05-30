@@ -82,7 +82,7 @@ Use `templates/digest-template.md` as the shape for each section. Fill in:
 
 - **Title** (verbatim from HF/arXiv).
 - **Authors + organization** — prefer the org from author affiliations; if multiple, list the primary one.
-- **Links** — both arXiv and HF (omit HF if the paper was found via arXiv only).
+- **Links** — arXiv, HF (omit if arXiv-only), and AlphaXiv (`https://www.alphaxiv.org/abs/<arxiv-id>`).
 - **Topics** — short backtick tags, drawn from the keep-list (`LLM`, `RL`, `safety`, `interp`, `MoE`, `diffusion`, `agents`, `multimodal`, `quantization`, `efficient-inference`, `reasoning`, `eval`).
 - **Hero figure** — see below.
 - **TL;DR** — one paragraph, in your own words. Don't copy the abstract.

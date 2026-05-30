@@ -15,7 +15,7 @@
 ## 1. {{Paper Title}}
 
 **Authors:** {{A, B, C}} — *{{Affiliation}}*
-**Links:** [arXiv:{{XXXX.XXXXX}}](https://arxiv.org/abs/{{XXXX.XXXXX}}) · [HF](https://huggingface.co/papers/{{XXXX.XXXXX}})
+**Links:** [arXiv:{{XXXX.XXXXX}}](https://arxiv.org/abs/{{XXXX.XXXXX}}) · [HF](https://huggingface.co/papers/{{XXXX.XXXXX}}) · [AlphaXiv](https://www.alphaxiv.org/abs/{{XXXX.XXXXX}})
 **Topics:** `{{tag1}}`, `{{tag2}}`
 
 ![Hero figure](assets/{{YYYY-MM-DD}}/{{arxiv-id}}.png)
