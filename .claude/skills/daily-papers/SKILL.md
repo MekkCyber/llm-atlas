@@ -133,13 +133,64 @@ Print to the user:
 
 ---
 
+## Phase 2 — Concept file extraction (second PR)
+
+After the digest PR is created, produce a **second PR** with the most important new concept files extracted from today's papers. This is the knowledge-graph growth step.
+
+### Selection criteria
+
+From the "Suggested new pages" across all papers in the digest, pick only those that meet **all** of:
+
+1. **Novel technique with a clear mechanism** — not just an application or result, but a new method worth documenting as a standalone concept.
+2. **Referenced by ≥2 papers in today's digest**, OR is the primary contribution of a top-5-upvoted paper.
+3. **Not already in the graph** — verify with `ls <folder>/<proposed-name>.md` before writing.
+
+**Hard cap: 3–5 new files per day.** Quality over quantity. If nothing qualifies, skip Phase 2 entirely.
+
+### Writing rules
+
+- **Depth files** follow `TEMPLATE-DEPTH.md` exactly: TL;DR, Prereqs, Related, What it is, How it works, Why it matters, Gotchas & tricks, Sources.
+- **Taxonomy files** follow `TEMPLATE-TAXONOMY.md` exactly: TL;DR, Related taxonomies, Depth files covered, The problem, Shared pattern, Variants table, How to choose, Adjacent but distinct, Sources.
+- **Concise.** Each file should be 40–80 lines. No filler, no redundancy with other files. A human should be able to read the whole file in 2 minutes.
+- **Grounded.** Only write what you can support from the paper abstract + your knowledge of the technique. Don't hallucinate details. If unsure, be explicit ("exact hyperparameters not available from the abstract").
+- **Cross-link.** Set `Prereqs:` and `Related:` lines to point at existing graph files. Use relative paths (`../folder/file.md`). Every link must resolve — verify with `ls`.
+- **Never modify existing files.** Only create new ones.
+- **Never touch `READING-LIST.md` or `PAPERS.md`.** Those are manually curated.
+
+### Workflow
+
+1. From the digest's "Suggested new pages" lists, rank candidates by importance (see criteria above).
+2. Pick top 3–5.
+3. For each, write the concept file at the correct path (e.g. `post-training/fine-tuning/lora.md`, `interpretability/activation-steering.md`).
+4. Create a new branch, commit, push, and open a second PR:
+   ```bash
+   BRANCH="kg-update/$YESTERDAY"
+   git checkout main
+   git checkout -b "$BRANCH"
+   git add <new-files>
+   git commit -m "kg: add concept files from $YESTERDAY digest"
+   git push origin "$BRANCH"
+   gh pr create --base main --head "$BRANCH" \
+     --title "KG update: concepts from $YESTERDAY" \
+     --body "New depth/taxonomy files extracted from the daily-papers digest for $YESTERDAY.
+
+   Files added:
+   - <list each new file with a one-line description>
+
+   These are auto-extracted. Review for accuracy before merging."
+   ```
+
+---
+
 ## Hard rules
 
-- **Never write to or edit** any existing concept file, `READING-LIST.md`, `PAPERS.md`, or topical `README.md`. Only suggest.
+- **Never edit existing concept files**, `READING-LIST.md`, `PAPERS.md`, or topical `README.md`. Only create new files.
 - **Never invent papers.** If a date has no papers, produce a digest with a clear "no papers found" note rather than fabricating entries.
-- **Never invent KG links.** Every `../<folder>/<file>.md` link in the digest must be a real file you found via Glob/Grep. Verify with `Read` or `ls` if uncertain.
+- **Never invent KG links.** Every `../<folder>/<file>.md` link in the digest or concept files must be a real file you found via Glob/Grep or that you just created in the same PR. Verify with `ls` if uncertain.
 - **One Glob, many Greps.** Don't re-glob the repo per paper — it's wasteful and slow.
 - **Quote conservatively.** Summarize abstracts in your own words; don't paste large chunks. Verbatim title is fine.
+- **Concept files must be concise.** 40–80 lines max. No padding. Readable by a human in 2 minutes.
+- **Max 3–5 new concept files per day.** Skip Phase 2 entirely if nothing clears the bar.
 
 ## Reference files
 
