@@ -135,62 +135,127 @@ Print to the user:
 
 ## Phase 2 — Concept file extraction (second PR)
 
-After the digest PR is created, produce a **second PR** with the most important new concept files extracted from today's papers. This is the knowledge-graph growth step.
+After the digest PR is created, produce a **second PR** with concept files extracted from today's papers. This is the knowledge-graph growth step.
 
-### Selection criteria
+### What qualifies
 
-From the "Suggested new pages" across all papers in the digest, pick only those that meet **all** of:
+From the "Suggested new pages" across all papers in the digest, include anything that is:
 
-1. **Novel technique with a clear mechanism** — not just an application or result, but a new method worth documenting as a standalone concept.
-2. **Referenced by ≥2 papers in today's digest**, OR is the primary contribution of a top-5-upvoted paper.
-3. **Not already in the graph** — verify with `ls <folder>/<proposed-name>.md` before writing.
+- A **novel technique with a clear mechanism** — a new method, architecture variant, training trick, or evaluation approach worth documenting as a standalone concept.
+- The **primary contribution** of a kept paper (not just a tangential reference).
+- Something that **fills a gap** in the existing graph — if the graph has no coverage of a topic area (e.g. no LoRA page, no activation-steering page), that's a strong signal.
 
-**Hard cap: 3–5 new files per day.** Quality over quantity. If nothing qualifies, skip Phase 2 entirely.
+**No fixed cap.** Write as many concept files as the day's papers justify. A day with 3 strong method papers might produce 8–10 files; a day with mostly incremental work might produce 1–2. If nothing qualifies, skip Phase 2 entirely.
 
-### Writing rules
+### Creating new files
 
 - **Depth files** follow `TEMPLATE-DEPTH.md` exactly: TL;DR, Prereqs, Related, What it is, How it works, Why it matters, Gotchas & tricks, Sources.
 - **Taxonomy files** follow `TEMPLATE-TAXONOMY.md` exactly: TL;DR, Related taxonomies, Depth files covered, The problem, Shared pattern, Variants table, How to choose, Adjacent but distinct, Sources.
 - **Concise.** Each file should be 40–80 lines. No filler, no redundancy with other files. A human should be able to read the whole file in 2 minutes.
 - **Grounded.** Only write what you can support from the paper abstract + your knowledge of the technique. Don't hallucinate details. If unsure, be explicit ("exact hyperparameters not available from the abstract").
 - **Cross-link.** Set `Prereqs:` and `Related:` lines to point at existing graph files. Use relative paths (`../folder/file.md`). Every link must resolve — verify with `ls`.
-- **Never modify existing files.** Only create new ones.
-- **Never touch `READING-LIST.md` or `PAPERS.md`.** Those are manually curated.
+
+### Editing existing files (controlled)
+
+If a technique is **not novel enough for its own file** but adds value to an existing page, you may **append** to existing concept files under these constraints:
+
+- **Only add to the relevant section** (e.g. add a row to a taxonomy's Variants table, add a bullet to "Gotchas & tricks", add a source to "Sources").
+- **Never rewrite** existing prose. Append only.
+- **Never change the file's TL;DR or structure.**
+- **Never touch `READING-LIST.md`, `PAPERS.md`, or topical `README.md`.**
+- Document every edit in the PR body so the reviewer sees exactly what changed and why.
 
 ### Workflow
 
-1. From the digest's "Suggested new pages" lists, rank candidates by importance (see criteria above).
-2. Pick top 3–5.
-3. For each, write the concept file at the correct path (e.g. `post-training/fine-tuning/lora.md`, `interpretability/activation-steering.md`).
-4. Create a new branch, commit, push, and open a second PR:
+1. From the digest's "Suggested new pages" lists, collect all candidates.
+2. For each, verify it doesn't already exist (`ls <folder>/<name>.md`). If it does exist but needs an update, plan an edit instead.
+3. Write new files / apply edits.
+4. Create a new branch, commit, push, and open a PR:
    ```bash
    BRANCH="kg-update/$YESTERDAY"
    git checkout main
+   git pull origin main
    git checkout -b "$BRANCH"
-   git add <new-files>
+   git add <new-and-edited-files>
    git commit -m "kg: add concept files from $YESTERDAY digest"
    git push origin "$BRANCH"
    gh pr create --base main --head "$BRANCH" \
      --title "KG update: concepts from $YESTERDAY" \
-     --body "New depth/taxonomy files extracted from the daily-papers digest for $YESTERDAY.
+     --body "Concept files extracted from the daily-papers digest for $YESTERDAY.
 
-   Files added:
-   - <list each new file with a one-line description>
+   **New files:**
+   - <path> — one-line description
 
-   These are auto-extracted. Review for accuracy before merging."
+   **Edited files:**
+   - <path> — what was appended and why
+
+   Auto-extracted. Review for accuracy before merging."
    ```
+
+---
+
+## Phase 3 — Tech report case studies (third PR, when applicable)
+
+If any paper in the digest is a **tech report / end-to-end system paper** (frontier model release, major open-source model, large-scale training report) comparable in scope to DeepSeek-R1, Llama 3, OLMo 2, etc., produce a **dedicated case study PR**.
+
+### Criteria for triggering Phase 3
+
+- The paper describes a **complete system** (architecture + training + evaluation), not just one technique.
+- It's the kind of paper where multiple depth files would be extracted as prerequisites.
+- Examples: "Llama 4 Technical Report", "Gemini 2.0", "Qwen3", "Mistral Large 3", a new frontier open-source model.
+
+If no paper in today's digest qualifies, skip Phase 3 entirely.
+
+### What the PR contains
+
+1. **A case study file** at `case-studies/<model-name>.md` — full breakdown of the system following the pattern in `case-studies/deepseek-v3.md` or `case-studies/deepseek-r1.md`:
+   - What this is (one-paragraph overview)
+   - Architecture at a glance (diagram-style breakdown)
+   - Training recipe (stages, data, hyperparameters)
+   - Post-training (if applicable)
+   - Key results
+   - Related concepts links
+
+2. **Depth files for each individually-novel innovation** in the tech report — placed in the correct topical folder. These are the innovations that *this paper is the primary source for*. Follow the same 40–80 line concise format.
+
+3. **Cross-links:** the case study's `Related concepts:` line links to both existing pages and the new depth files in the same PR.
+
+### Workflow
+
+```bash
+BRANCH="case-study/$MODEL_NAME"
+git checkout main
+git pull origin main
+git checkout -b "$BRANCH"
+# Write case-studies/<model-name>.md
+# Write each new depth file in its topical folder
+git add case-studies/<model-name>.md <new-depth-files>
+git commit -m "case-study: <model-name> + concept files"
+git push origin "$BRANCH"
+gh pr create --base main --head "$BRANCH" \
+  --title "Case study: <Model Name>" \
+  --body "Full breakdown of <Model Name> tech report from $YESTERDAY.
+
+  **Case study:** case-studies/<model-name>.md
+  **New depth files:**
+  - <path> — one-line description
+  - ...
+
+  Auto-extracted from the tech report. Review for accuracy before merging."
+```
 
 ---
 
 ## Hard rules
 
-- **Never edit existing concept files**, `READING-LIST.md`, `PAPERS.md`, or topical `README.md`. Only create new files.
+- **Never touch `READING-LIST.md` or `PAPERS.md`.** Those are manually curated.
+- **Never rewrite** existing concept file prose — only append to relevant sections (Phase 2 edits).
 - **Never invent papers.** If a date has no papers, produce a digest with a clear "no papers found" note rather than fabricating entries.
-- **Never invent KG links.** Every `../<folder>/<file>.md` link in the digest or concept files must be a real file you found via Glob/Grep or that you just created in the same PR. Verify with `ls` if uncertain.
-- **One Glob, many Greps.** Don't re-glob the repo per paper — it's wasteful and slow.
-- **Quote conservatively.** Summarize abstracts in your own words; don't paste large chunks. Verbatim title is fine.
-- **Concept files must be concise.** 40–80 lines max. No padding. Readable by a human in 2 minutes.
-- **Max 3–5 new concept files per day.** Skip Phase 2 entirely if nothing clears the bar.
+- **Never invent KG links.** Every `../<folder>/<file>.md` link must be a real file (existing or created in the same PR). Verify with `ls`.
+- **One Glob, many Greps.** Don't re-glob the repo per paper.
+- **Quote conservatively.** Summarize in your own words; don't paste large chunks.
+- **Concept files must be concise.** 40–80 lines. Readable by a human in 2 minutes. All needed details, nothing more.
+- **Case studies can be longer** (100–200 lines) since they cover entire systems, but still no filler.
 
 ## Reference files
 
