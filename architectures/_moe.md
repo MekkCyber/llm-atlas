@@ -5,7 +5,7 @@
 **TL;DR:** Replace the dense FFN in each transformer block with many smaller **expert** FFNs, and use a lightweight **router** to send each token to only a few experts. Total parameters grow large (capacity), activated parameters stay small (cost). The family breaks into design choices along three axes — **routing algorithm** (top-$K$ token-choice vs expert-choice), **load balancing** (auxiliary loss vs aux-loss-free), and **expert granularity** (few big vs many small, $\pm$ shared experts).
 
 **Related taxonomies:** [_normalization](_normalization.md)
-**Depth files covered here:** [deepseek-moe](deepseek-moe.md) · [load-balancing-loss](load-balancing-loss.md) · [sequence-wise-balance-loss](sequence-wise-balance-loss.md) · [aux-loss-free-balancing](aux-loss-free-balancing.md) · [capacity-factor](capacity-factor.md)
+**Depth files covered here:** [deepseek-moe](deepseek-moe.md) · [load-balancing-loss](load-balancing-loss.md) · [sequence-wise-balance-loss](sequence-wise-balance-loss.md) · [aux-loss-free-balancing](aux-loss-free-balancing.md) · [capacity-factor](capacity-factor.md) · [block-level-moe-routing](block-level-moe-routing.md)
 
 ---
 
@@ -55,6 +55,7 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 | **BASE Layers** (Lewis 2021) — *no depth file yet* | Assignment via linear assignment (balanced by construction) | Solver cost; harder to scale | Research / middle scale |
 | **Router z-loss** (ST-MoE, Zoph 2022) — *no depth file yet* | Penalize $(\log \sum_j \exp(\mathrm{logit}_j))^2$ to bound router-logit magnitude | Another aux term (mild gradient interference) | Stability at large scale; complements load-balance loss |
 | **Node-limited routing** (DeepSeek-V3, 2024) — *no depth file yet* | Hard cap on nodes a token's top-$K$ can span | Reduces routing flexibility at large expert counts | Fine-grained MoE with constrained inter-node bandwidth |
+| [**Block-level MoE routing**](block-level-moe-routing.md) (dMoE, 2026) | Aggregate per-token routing scores into one per-block distribution; route the whole block coherently | Coarser specialization within a block | Parallel-decoded models (dLLMs) where token-level routing activates ~all experts |
 
 ---
 
@@ -108,3 +109,4 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 - Paper: *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models* — Dai et al., 2024 — fine-grained + shared experts.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — aux-loss-free balancing at 671B scale.
 - Paper: *Mixture-of-Experts with Expert Choice Routing* — Zhou et al., 2022.
+- Paper: *dMoE: dLLMs with Learnable Block Experts* — Feng et al., 2026 — block-level routing for diffusion LLMs.

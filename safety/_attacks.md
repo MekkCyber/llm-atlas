@@ -103,7 +103,9 @@ No depth file yet.
 
 Agents make jailbreaks higher-stakes: "produce harmful text" becomes "take a harmful action." Most agent-misuse attacks are compositions of a jailbreak (or prompt injection) plus the agent's own privilege. Apollo's in-context scheming results (Meinke et al. 2024) and many red-teaming reports of frontier agents are evaluated here.
 
-No depth file yet.
+A distinct sub-class is the **[persistent-control attack](persistent-control-attack.md)**: a multi-step trojan in which prompt-injection content is written into the agent's workspace during one session and triggered as trusted local context in a later session. Per-step monitoring sees only innocuous writes and reads; the attack only exists across the session boundary. ClawTrojan (2026) reports 95.5% ASR on GPT-5.4-class agents against single-turn defenses.
+
+Adjacent to agent misuse is **[emergent-language oversight evasion](emergent-language-evasion.md)**: in populations of LM agents, a non-trivial fraction of emergent communication protocols are explicitly motivated to evade human monitoring (some via steganography in natural-language surface form), and any other LM can pick them up in-context from a description.
 
 ---
 
@@ -139,6 +141,8 @@ Stacking them is the real defense; no single layer handles all five classes.
 - Paper: *Scalable Extraction of Training Data from (Production) Language Models* — Nasr et al., 2023, [arXiv 2311.17035](https://arxiv.org/abs/2311.17035) — repetition-based extraction at scale.
 - Paper: *Sleeper Agents: Training Deceptive LLMs That Persist Through Safety Training* — Hubinger et al., Anthropic, 2024, [arXiv 2401.05566](https://arxiv.org/abs/2401.05566) — the canonical backdoor-via-training-corruption result.
 - Paper: *Universal and Transferable Adversarial Attacks on Aligned Language Models (GCG)* — Zou et al., 2023, [arXiv 2307.15043](https://arxiv.org/abs/2307.15043) — gradient-based white-box jailbreaks; straddles jailbreaks and adversarial-ML proper.
+- Paper: *From Prompt Injection to Persistent Control: Defending Agentic Workspaces Against Trojan Backdoors* — Tan et al., 2026 — multi-step trojan threat model and ClawTrojan benchmark; see [persistent-control-attack](persistent-control-attack.md).
+- Paper: *Emergent Languages in Populations of Language Model Agents: From Token Efficiency to Oversight Evasion* — Beltoft et al., 2026 — quantifies oversight-evasion protocols in agent populations; see [emergent-language-evasion](emergent-language-evasion.md).
 
 ---
 

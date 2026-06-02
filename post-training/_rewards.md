@@ -170,6 +170,8 @@ Additional rules of thumb:
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — explicit choice of rule-based rewards over neural RMs; tried and rejected PRMs for RL.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — introduces the asymmetric [length-penalty](reasoning/length-penalty.md) shaping reward and the [cot-reward-model](cot-reward-model.md) for math verification.
 - Paper: *Generative Verifiers: Reward Modeling as Next-Token Prediction* — Zhang et al., 2024, arXiv 2408.15240 — concurrent primary source for generative reward modeling.
+- Paper: *LongTraceRL: Learning Long-Context Reasoning from Search Agent Trajectories with Rubric Rewards* — Lin et al., 2026 — entity-rubric shaping reward with positive-only gating; see [reasoning/rubric-reward](reasoning/rubric-reward.md).
+- Paper: *The Flip Side of RLHF: On-Policy Feedback for Reward Model Self-Supervised Improvement* — Wang et al., 2026 — co-training the RM with the policy via the value head; see [save-reward-model](save-reward-model.md).
 
 ---
 
