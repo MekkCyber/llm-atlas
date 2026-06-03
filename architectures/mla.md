@@ -138,6 +138,7 @@ At decode time, you compute $\tilde{Q}^{(h)} = (W^{UK,(h)})^\top \cdot Q^{(h)}$ 
 - **RoPE dim $d_h^R$ choice.** 64 works; much smaller (16) visibly hurts long-context quality; larger (128) is fine but wastes cache. 64 seems to be the settled value.
 - **Not just for inference.** MLA is used at training too — the cache savings don't matter during training (full sequence is materialized), but the parameter savings and the slight quality bump do.
 - **Memory for $W^{UK}, W^{UV}$ grows with $H$.** One up-projection matrix per head. At $H=128$ this is a lot of parameters — but they're cheap compared to the FFN and don't dominate the model size.
+- **Ports to video diffusion despite the spectral assumption failing.** *VideoMLA* (Yesiltepe et al., 2026) replaces per-head K/V in long-rollout video DiTs (Wan, HunyuanVideo) with a shared low-rank latent + decoupled 3D-RoPE positional key, cutting per-token KV memory by 92.7% per layer. Notably, pretrained *video* attention is **not** low-rank (99%-energy effective rank far above any practical latent dim), refuting the usual "MLA works because attention is naturally low-rank" framing. Instead, the MLA bottleneck *creates* a usable subspace through training — both spectral and random initializations occupy nearly the full rank budget from start and training preserves it. Reframes how MLA-style designs should be motivated and tuned in non-language modalities.
 
 ---
 
@@ -147,3 +148,4 @@ At decode time, you compute $\tilde{Q}^{(h)} = (W^{UK,(h)})^\top \cdot Q^{(h)}$ 
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — reuses MLA with the same hyperparameters at larger scale.
 - Implementation: DeepSeek's `DeepSeek-V3` repo and the FlashInfer MLA kernel.
 - Background: *GQA: Training Generalized Multi-Query Transformer Models* — Ainslie et al., 2023 — the closest predecessor in the KV-reduction family.
+- Cross-modal port: *VideoMLA: Low-Rank Latent KV Cache for Minute-Scale Autoregressive Video Diffusion* — Yesiltepe et al., 2026 — [arXiv:2605.30351](https://arxiv.org/abs/2605.30351). Surfaces the bottleneck-creates-rank mechanism noted in the gotcha above.
