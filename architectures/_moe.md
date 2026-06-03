@@ -55,6 +55,7 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 | **BASE Layers** (Lewis 2021) — *no depth file yet* | Assignment via linear assignment (balanced by construction) | Solver cost; harder to scale | Research / middle scale |
 | **Router z-loss** (ST-MoE, Zoph 2022) — *no depth file yet* | Penalize $(\log \sum_j \exp(\mathrm{logit}_j))^2$ to bound router-logit magnitude | Another aux term (mild gradient interference) | Stability at large scale; complements load-balance loss |
 | **Node-limited routing** (DeepSeek-V3, 2024) — *no depth file yet* | Hard cap on nodes a token's top-$K$ can span | Reduces routing flexibility at large expert counts | Fine-grained MoE with constrained inter-node bandwidth |
+| [**MoEfication / DOT-MoE**](moefication.md) (Zhang 2022, 2026) | Convert a pretrained dense model into MoE by partitioning FFN neurons into experts | Quality drop vs from-scratch MoE; partition quality is the open lever | When pretraining a new MoE from scratch isn't feasible |
 
 ---
 
@@ -108,3 +109,4 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 - Paper: *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models* — Dai et al., 2024 — fine-grained + shared experts.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — aux-loss-free balancing at 671B scale.
 - Paper: *Mixture-of-Experts with Expert Choice Routing* — Zhou et al., 2022.
+- Paper: *DOT-MoE: Differentiable Optimal Transport for MoEfication* — 2026 — [arXiv:2606.01666](https://arxiv.org/abs/2606.01666) — Sinkhorn-Knopp + STE for the dense → MoE partition. See [moefication](moefication.md).
