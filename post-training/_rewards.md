@@ -103,6 +103,10 @@ See: [cot-reward-model](cot-reward-model.md).
 
 See: [_post-training](_post-training.md) (preference-optimization section).
 
+### 4b. Distributional reward (Z-Reward, 2026)
+
+A variant of the preference RM family where the model predicts a **categorical distribution over rubric scores** rather than a single scalar — the rationale being that subjective judgments are inherently distributional (different raters disagree) and a scalar collapses the signal. The Z-Reward recipe uses a heavyweight CoT teacher and distills it into a forward-pass-cheap student that emits the same distribution directly (88.6% of the 27B teacher's 89.6% accuracy at 9B params, and +41.3% net human-preference improvement over the SFT baseline when used as the online T2I RL reward). Transferable to LLM RL where the CoT-RM is currently the verifier bottleneck — see [cot-reward-model](cot-reward-model.md) and [distributional-reward](distributional-reward.md).
+
 ### 5. Shaping / auxiliary rewards
 
 **Signal:** small cheap terms added to the main reward to shape secondary behaviors.
