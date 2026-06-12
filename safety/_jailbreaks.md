@@ -45,6 +45,7 @@ These are mechanistically different. Competing objectives is a *loss-function st
 | [style-injection](style-injection.md) | Style constraint — refusal templates don't fit the demanded style | — (load-bearing in combinations) |
 | [distractor-attack](distractor-attack.md) | Instruction overload — safety is local, helpfulness is global | 0.44 |
 | [evil-system-prompt](evil-system-prompt.md) | Privilege escalation — attacker-controlled system role | 0.53 (where applicable) |
+| [grammar-constrained-jailbreak](grammar-constrained-jailbreak.md) (CodeSpear, 2026) | Decoder-layer constraint — grammar masks out refusal tokens | high on code-generation prompts (Lu 2026) |
 
 ### Mismatched generalization attacks
 
