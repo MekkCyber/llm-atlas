@@ -134,3 +134,4 @@ Frontier reasoning: 60–85%. Non-reasoning frontier: 33–55%. 7–8B open mode
 - Paper: *DeepSeek-R1* — 2025, arXiv 2501.12948 — uses the 2024-08 to 2025-01 window.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025, arXiv 2501.12599 — reports long-CoT and short-CoT LCB numbers.
 - Related: *CRUXEval* — Gu et al. 2024 — the inspiration for the code-execution scenario.
+- Extension: *Multi-LCB: Extending LiveCodeBench to Multiple Programming Languages* — Ivanova et al., GigaCode / Yandex SDA, 2026, arXiv 2606.20517 — twelve-language version with per-language hidden tests (see [multi-lcb](multi-lcb.md)).
