@@ -122,3 +122,4 @@ Because the scale is a pure power of two, rescaling a block is a bit-shift in th
 - Paper: *GPTQ: Accurate Post-Training Quantization* — Frantar et al., 2022 — INT4 with group-wise scales.
 - Paper: *SmoothQuant* — Xiao et al., 2022 — per-channel weight / per-token activation INT8.
 - NVIDIA Hopper and Blackwell architecture whitepapers — hardware support for FP8 and MXFP formats.
+- Paper: *Rethinking Shrinkage Bias in LLM FP4 Pretraining* — Ant Group, 2026 — diagnoses E2M1's geometric rounding bias and argues for uniform 4-bit grids (E1M2 / INT4) at training time. See [shrinkage-bias](shrinkage-bias.md) and [../pre-training/fp4-training.md](../pre-training/fp4-training.md).

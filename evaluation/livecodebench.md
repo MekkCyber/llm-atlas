@@ -4,7 +4,7 @@
 **TL;DR:** A code benchmark whose problems are **scraped weekly from LeetCode, AtCoder, and Codeforces** contests and tagged with release date, so you can evaluate on problems released *after* a model's training cutoff. Four scenarios: **code generation, self-repair, test output prediction, code execution**. Pass@1 via hidden tests. Jain et al. 2024 (arXiv 2403.07974). **Not saturated** — frontier reasoning models land 60–85%, non-reasoning frontier 35–55%. The standard "hard code" benchmark for reasoning LLMs as of 2025.
 
 **Prereqs:** *(none)*
-**Related:** [humaneval](humaneval.md) · [codeforces-benchmark](codeforces-benchmark.md) · [aime](aime.md)
+**Related:** [humaneval](humaneval.md) · [codeforces-benchmark](codeforces-benchmark.md) · [aime](aime.md) · [multi-lcb](multi-lcb.md)
 
 ---
 
