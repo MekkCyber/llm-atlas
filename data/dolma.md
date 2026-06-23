@@ -92,3 +92,4 @@ Dolmino's role in OLMo 2 is described in detail in [mid-training.md](../pre-trai
 - Paper: *2 OLMo 2 Furious* — AI2, 2024 — documents OLMo-Mix-1124 and Dolmino Mix 1124.
 - Repo: `dolma` toolkit — https://github.com/allenai/dolma — the processing code.
 - Related data releases referenced for comparison: *The Pile* (Gao et al., 2020); *RefinedWeb* (Penedo et al., 2023); *RedPajama-v2*; *FineWeb* and *FineWeb-Edu* (Penedo et al., 2024); *DCLM* (Li et al., 2024).
+- Analysis: *Characterizing Narrative Content in Web-scale LLM Pretraining Data* — Johnson et al., 2026 — https://arxiv.org/abs/2606.19468 — releases NarraDolma, a 3M-passage narrative-labeled subset of Dolma; see [narrative-analysis](narrative-analysis.md).
