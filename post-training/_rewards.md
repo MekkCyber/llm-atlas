@@ -170,6 +170,8 @@ Additional rules of thumb:
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — explicit choice of rule-based rewards over neural RMs; tried and rejected PRMs for RL.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — introduces the asymmetric [length-penalty](reasoning/length-penalty.md) shaping reward and the [cot-reward-model](cot-reward-model.md) for math verification.
 - Paper: *Generative Verifiers: Reward Modeling as Next-Token Prediction* — Zhang et al., 2024, arXiv 2408.15240 — concurrent primary source for generative reward modeling.
+- Paper: *Discretizing Reward Models* — Viswanathan et al., 2026, arXiv 2606.21795 — introduces the discriminative-ability vs specificity decomposition and an MC-dropout discretization fix. See [reward-model-discretization](reward-model-discretization.md).
+- Paper: *The Verification Horizon: No Silver Bullet for Coding Agent Rewards* — Liu, Wang et al., 2026, arXiv 2606.26300 — three-axis (scalability / faithfulness / robustness) verifier design framework for coding agents. See [verification-horizon](verification-horizon.md).
 
 ---
 
