@@ -240,6 +240,9 @@ All of these are the same policy-gradient skeleton with different specialization
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale verifiable-reward RL, including the [long-CoT RL](reasoning/long-cot-rl.md) / R1-Zero result.
 - Paper: *Tülu 3* — AI2, 2024 — canonical open recipe stacking SFT + DPO + [RLVR](rlvr.md).
 - Textbook reference: Sutton & Barto, *Reinforcement Learning: An Introduction* (2018) — for the classical RL fundamentals (MDPs, policy gradient, value functions).
+- Paper: *Neglected Free Lunch from Post-training: Progress Advantage for LLM Agents* — Oh et al., 2026, [arXiv:2606.26080](https://arxiv.org/abs/2606.26080) — proves the KL-regularized log-ratio $\log \pi_\theta / \pi_{\text{ref}}$ recovers the optimal advantage; gives a free step-level signal that falls out of any PPO/GRPO/RLVR run. See [progress-advantage](progress-advantage.md).
+- Paper: *OPID: On-Policy Skill Distillation for Agentic Reinforcement Learning* — Yang et al., 2026, [arXiv:2606.26790](https://arxiv.org/abs/2606.26790) — interleaves on-policy self-distillation from successful rollouts with outcome-only RL to deliver dense token-level supervision for agentic tasks. See [opid](opid.md).
+- Paper: *Why Multi-Step Tool-Use RL Collapses and How Supervisory Signals Fix It* — Hao et al., 2026, [arXiv:2606.26027](https://arxiv.org/abs/2606.26027) — names the tool-format collapse failure mode and characterizes the supervisory-signal mitigation menu. See [tool-rl-collapse](tool-rl-collapse.md).
 
 ---
 
