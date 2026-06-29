@@ -170,6 +170,9 @@ Additional rules of thumb:
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — explicit choice of rule-based rewards over neural RMs; tried and rejected PRMs for RL.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — introduces the asymmetric [length-penalty](reasoning/length-penalty.md) shaping reward and the [cot-reward-model](cot-reward-model.md) for math verification.
 - Paper: *Generative Verifiers: Reward Modeling as Next-Token Prediction* — Zhang et al., 2024, arXiv 2408.15240 — concurrent primary source for generative reward modeling.
+- Paper: *Discretizing Reward Models* — Viswanathan et al., 2026, [arXiv:2606.21795](https://arxiv.org/abs/2606.21795) — introduces the *discrimination* vs *specificity* split for neural RMs and an MC-dropout discretization that reduces reward hacking without retraining. See [reward-discretization](reward-discretization.md).
+- Paper: *Neglected Free Lunch from Post-training: Progress Advantage for LLM Agents* — Oh et al., 2026, [arXiv:2606.26080](https://arxiv.org/abs/2606.26080) — the implicit advantage $\log \pi_\theta / \pi_{\text{ref}}$ as an annotation-free step-level signal. See [progress-advantage](progress-advantage.md).
+- Paper: *The Verification Horizon: No Silver Bullet for Coding Agent Rewards* — Wang et al., 2026, [arXiv:2606.26300](https://arxiv.org/abs/2606.26300) — the four verifier families (test / rubric / user / agent) and the scalability–faithfulness–robustness axes. See [_verifiers](_verifiers.md).
 
 ---
 
