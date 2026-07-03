@@ -108,3 +108,4 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 - Paper: *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models* — Dai et al., 2024 — fine-grained + shared experts.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — aux-loss-free balancing at 671B scale.
 - Paper: *Mixture-of-Experts with Expert Choice Routing* — Zhou et al., 2022.
+- Serving-side: *ELDR: Expert-Locality-Aware Decode Routing for PD-Disaggregated MoE Serving* — Cho et al., 2026 — uses model-level routing signals as a scheduling input. See [../inference/moe-decode-routing.md](../inference/moe-decode-routing.md).
