@@ -142,3 +142,4 @@ Many synthetic-data pipelines (Orca, Phi, WizardMath, a dozen open recipes) are 
 - Paper: *Tülu 3: Pushing Frontiers in Open Language Model Post-Training* — AI2, 2024 — canonical open recipe, uses rejection sampling on SFT-completion stages.
 - Paper: *Training Verifiers to Solve Math Word Problems* — Cobbe et al., 2021 — early example of using a learned verifier to rerank/filter model outputs on GSM8K (see [orm](reasoning/orm.md)).
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — uses shortest-rejection-sampling (`n=8`, length-tiebreak) as one of four [long2short](reasoning/long2short.md) compression methods.
+- Paper: *When More Sampling Hurts: The Modal Ceiling and Correlation Ceiling of Test-Time Scaling* — Bay & Yearick, 2026 — bounds on selection accuracy that cap best-of-$K$ / rejection-sampling gains. See [reasoning/test-time-scaling](reasoning/test-time-scaling.md).

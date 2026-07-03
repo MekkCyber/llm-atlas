@@ -121,6 +121,7 @@ GRPO as written assigns the same $A_i$ to every token of response $o_i$. This is
 - **Don't confuse with REINFORCE with baseline.** REINFORCE is single-sample; GRPO is multi-sample with group baseline. The sampling structure is the whole point.
 - **Composite rewards compose by direct sum.** Papers that combine signals (e.g., R1's *accuracy + format + language-consistency*) sum them before computing $A_i$. The group normalization then handles the overall scale. Note this is a real alignment-vs-capability lever: R1 observed that adding the language-consistency term slightly reduces benchmark scores but produces much cleaner CoT — the tradeoff is worth naming explicitly.
 - **Hyperparameters from the original paper are unspecified at scale.** DeepSeek-R1 uses GRPO but doesn't disclose $G$, $\epsilon$, or $\beta$ for the R1 runs. For reproduction, open implementations (veRL, TRL, OpenRLHF) default to $G \in \{8, 16\}$, $\epsilon = 0.2$, $\beta \in \{0.001, 0.04\}$. Treat these as starting points, not canonical values.
+- **The $\sigma_r$ division is a curriculum knob, not a normalisation step.** Under binary rewards, $\sigma_r$ is a closed-form function of how many rollouts are correct, and the per-group gradient magnitude is proportional to it. GRPO / Dr. GRPO / DAPO differ only in how they treat $\sigma_r$ — see [group-std-identity](group-std-identity.md).
 
 ---
 
@@ -130,6 +131,7 @@ GRPO as written assigns the same $A_i$ to every token of response $o_i$. This is
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — applies GRPO with hybrid rule-based + model-based rewards.
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale reasoning RL using GRPO with verifiable rewards; R1-Zero uses GRPO from base with no SFT, R1 uses GRPO in Stages 2 and 4 of a 4-stage pipeline.
 - Paper: *Proximal Policy Optimization Algorithms* — Schulman et al., 2017 — the PPO baseline GRPO simplifies. See [ppo.md](./ppo.md).
+- Paper: *GRPO, Dr. GRPO, and DAPO Are Three Operations on One Number: The Group-Standard-Deviation Identity* — Bay & Yearick, 2026 — foundational commentary on the $\sigma_r$ division. See [group-std-identity](group-std-identity.md).
 
 ---
 
