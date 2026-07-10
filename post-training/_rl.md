@@ -202,6 +202,7 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **REINFORCE** | Any scalar | Raw return | None | No | Toy/historical |
 | **[PPO](ppo.md)** (classical RLHF) | Learned preference RM | Value-network baseline | PPO clip | Yes | General RLHF; still used at frontier labs |
 | **[GRPO](grpo.md)** | Any scalar | Group-relative ($K$ rollouts, z-score) | PPO clip | **No** | Modern default for reasoning RL / verifiable rewards |
+| **[SAO](sao.md)** | Any scalar | Value-network baseline (single rollout) | PPO clip + double-sided token cap | **Yes** | Asynchronous long-horizon agentic RL (SWE-Bench, IMOAnswer); powers GLM-5.2 |
 | **[Online policy mirror descent](reasoning/online-policy-mirror-descent.md)** | Any scalar | Group-relative ($K$ rollouts, mean only) | $\ell_2$ on log-ratios (no clip) | No | Kimi k1.5's long-CoT RL; principled-derivation alternative to GRPO |
 | **[RLVR](rlvr.md)** | Rule-based verifier | GRPO- or mirror-descent-style | Either | No | Math, code, format — anywhere correctness is checkable |
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
