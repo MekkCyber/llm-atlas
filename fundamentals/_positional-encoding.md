@@ -5,7 +5,7 @@
 **TL;DR:** Attention is permutation-equivariant — shuffle the tokens and you get the shuffled output. Models need position information injected explicitly. There are four main families (absolute, relative, rotary, bias-based), and modern LLMs have converged on rotary (RoPE) with interpolation tricks (YaRN, NTK-aware) for long context.
 
 **Related taxonomies:** *(none yet)*
-**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md) · [rope](rope.md)
+**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md) · [rope](rope.md) · [bifocal-rope](bifocal-rope.md)
 
 ---
 
@@ -36,6 +36,7 @@ Every positional-encoding scheme injects a signal that is a **function of positi
 | ALiBi (no depth file yet) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
 | YaRN / NTK-aware RoPE (covered in [rope](rope.md)) | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
 | LongRoPE (no depth file yet) | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
+| [Bifocal RoPE](bifocal-rope.md) | Rotary extension | Two RoPE windows per head; long-range factor picked dynamically per input | Requires per-input rescale schedule | Zero-shot serving mix of short + very long inputs on one checkpoint |
 
 ## How to choose
 
@@ -65,3 +66,4 @@ Once a RoPE model is trained, YaRN and NTK-aware scaling let you multiply its co
 - Paper: *YaRN: Efficient Context Window Extension* — Peng et al., 2023 — https://arxiv.org/abs/2309.00071
 - Paper: *LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens* — Ding et al., 2024.
 - Paper: *Exploring the Limits of Transfer Learning (T5)* — Raffel et al., 2019 — relative position bias.
+- Paper: *Jet-Long: Efficient Long-Context Extension with Dynamic Bifocal RoPE* — Cai et al., NVIDIA, 2026 — https://arxiv.org/abs/2607.07740 — bifocal RoPE.
