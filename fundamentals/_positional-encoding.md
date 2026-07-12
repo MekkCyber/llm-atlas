@@ -36,6 +36,7 @@ Every positional-encoding scheme injects a signal that is a **function of positi
 | ALiBi (no depth file yet) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
 | YaRN / NTK-aware RoPE (covered in [rope](rope.md)) | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
 | LongRoPE (no depth file yet) | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
+| [Jet-Long](jet-long.md) | Rotary extension | Bifocal RoPE with length-adaptive long-range factor | 2× RoPE compute (small constant) | **Tuning-free**, preserves short-context fidelity exactly |
 
 ## How to choose
 
