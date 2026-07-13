@@ -207,6 +207,7 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[UP (Unbounded Positive Asymmetric)](up-asymmetric-optimization.md)** | Any scalar | Any (PPO/GRPO/etc.) | Asymmetric — unclipped on positive $A_t$, PPO-clipped on negative $A_t$ | No | Exploration-limited settings where the symmetric clip is suppressing genuine positive updates |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
@@ -240,6 +241,7 @@ All of these are the same policy-gradient skeleton with different specialization
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale verifiable-reward RL, including the [long-CoT RL](reasoning/long-cot-rl.md) / R1-Zero result.
 - Paper: *Tülu 3* — AI2, 2024 — canonical open recipe stacking SFT + DPO + [RLVR](rlvr.md).
 - Textbook reference: Sutton & Barto, *Reinforcement Learning: An Introduction* (2018) — for the classical RL fundamentals (MDPs, policy gradient, value functions).
+- Paper: *UP: Unbounded Positive Asymmetric Optimization for Breaking the Exploration-Stability Dilemma* — Fan et al. (ByteDance Seed), 2026 — [arXiv 2607.06987](https://arxiv.org/abs/2607.06987).
 
 ---
 
