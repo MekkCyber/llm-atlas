@@ -36,6 +36,8 @@ Every positional-encoding scheme injects a signal that is a **function of positi
 | ALiBi (no depth file yet) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
 | YaRN / NTK-aware RoPE (covered in [rope](rope.md)) | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
 | LongRoPE (no depth file yet) | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
+| [Jet-Long (Dynamic Bifocal RoPE)](jet-long.md) | Rotary extension | Two RoPE windows in parallel — local (unscaled) + long-range (dynamic-rescale) — merged via inclusion–exclusion | Rescaling schedule tuned per model family; kernel Hopper-optimized | Zero-shot long-context extension where short-context fidelity must be preserved exactly, and long-prefill throughput matters (up to 1.39× FA2 on H100) |
+| [DCA (Dual Chunk Attention)](dca.md) | Position remap | Chunk-based relative-position remapping inside pretrained range | Loses long-distance positional resolution | Training-free long-context extension; composes with YaRN |
 
 ## How to choose
 
@@ -65,3 +67,4 @@ Once a RoPE model is trained, YaRN and NTK-aware scaling let you multiply its co
 - Paper: *YaRN: Efficient Context Window Extension* — Peng et al., 2023 — https://arxiv.org/abs/2309.00071
 - Paper: *LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens* — Ding et al., 2024.
 - Paper: *Exploring the Limits of Transfer Learning (T5)* — Raffel et al., 2019 — relative position bias.
+- Paper: *Jet-Long: Efficient Long-Context Extension with Dynamic Bifocal RoPE* — Cai (NVIDIA), 2026 — [arXiv 2607.07740](https://arxiv.org/abs/2607.07740).
