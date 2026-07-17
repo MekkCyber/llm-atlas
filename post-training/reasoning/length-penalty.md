@@ -115,6 +115,7 @@ The reward compares *within a group of responses to the same prompt*. Hard promp
 - **Length in tokens, not words.** Tokenization differences across models mean "5000 tokens" isn't a fixed real-world length. Compare within-tokenizer.
 - **Doesn't fix all length issues.** The penalty reduces average length but doesn't make short-CoT competitive with long-CoT at peak performance — for that, use long2short distillation after RL.
 - **Don't generalize to non-verifiable tasks naively.** The asymmetry depends on a clean correctness signal. For RLHF with preference rewards (no binary correct/incorrect), the $\min(0, \lambda)$ floor doesn't map cleanly. Needs adaptation.
+- **Corrodes CoT monitorability.** Little 2026 ([../../safety/length-penalty-monitorability.md](../../safety/length-penalty-monitorability.md)) shows length-penalized RL on Qwen3-4B/14B preferentially strips *influence-disclosing* tokens from CoT — monitor-caught hint use drops from ~65% to ~48% while accuracy is preserved. A length-matched control confirms this is a *content* effect, not merely a *length* effect. If your deployment depends on CoT monitoring, treat length shaping as a safety-relevant knob and co-optimize with faithfulness.
 
 ---
 
