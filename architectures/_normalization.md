@@ -57,6 +57,7 @@ A separate, orthogonal design choice is **placement** inside the transformer blo
 | **Pre-norm** | `x + Sublayer(Norm(x))` | Clean residual gradient; residual magnitude drifts at depth | **Most modern LLMs (LLaMA, Mistral, GPT-NeoX)** |
 | [Reordered-norm](reordered-norm.md) | `x + Norm(Sublayer(x))` | Clean residual *and* bounded sub-layer contribution | OLMo 2 |
 | Sandwich norm | `x + Norm(Sublayer(Norm(x)))` | Two norms per sub-layer; extra safety, extra compute | CogView, some specialized runs |
+| DeepNorm (looped) | Post-LN DeepNorm with residual scaling tied to *unrolled* depth $N$: $\alpha=(2N)^{1/2}$, $\beta=(8N)^{-1/2}$ | Requires knowing $N$ at train time; 1/2 exponent instead of standard 1/4 due to visit alignment | Looped Transformers — see [looped-transformer](looped-transformer.md) |
 
 ## How to choose
 
@@ -86,3 +87,4 @@ Stacking these three — RMSNorm + reordered placement + QK-norm — is the OLMo
 - Paper: *Scaling Vision Transformers to 22 Billion Parameters* — Dehghani et al., 2023 — introduces QK-norm explicitly as a depth-stability fix.
 - Paper: *2 OLMo 2 Furious* — AI2, 2024 — reordered-norm + QK-norm + RMSNorm ablations.
 - Paper: *Batch Normalization* — Ioffe & Szegedy, 2015 — for the adjacent technique.
+- Paper: *DeepLoop: Depth Scaling for Looped Transformers* — Li et al., 2026 — corrects the DeepNorm residual-scaling exponent for looped architectures (visit-aligned regime requires 1/2 instead of 1/4); see [looped-transformer](looped-transformer.md).
