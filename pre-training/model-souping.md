@@ -4,7 +4,7 @@
 **TL;DR:** Train $N$ models (different seeds, data orders, or fine-tuning recipes), then average their weights element-wise. The result often matches or beats any single model on validation loss and downstream benchmarks, for the cost of one extra optimizer call. Works because nearby minima in the loss landscape are **linearly connected** — a straight line between two trained checkpoints stays in low loss.
 
 **Prereqs:** [transformer-block](../architectures/transformer-block.md)
-**Related:** [mid-training](mid-training.md), [_lr-schedules](_lr-schedules.md), [long2short](../post-training/reasoning/long2short.md), [olmo-2 case study](../case-studies/olmo-2.md), [kimi-k1-5 case study](../case-studies/kimi-k1-5.md)
+**Related:** [mid-training](mid-training.md), [_lr-schedules](_lr-schedules.md), [long2short](../post-training/reasoning/long2short.md), [olmo-2 case study](../case-studies/olmo-2.md), [kimi-k1-5 case study](../case-studies/kimi-k1-5.md), [_model-merging](_model-merging.md), [spectral-rewiring](../post-training/spectral-rewiring.md)
 
 ---
 
@@ -73,3 +73,4 @@ Kimi k1.5 (2025) uses model merging as one of four methods to compress a long-Co
 - Paper: *2 OLMo 2 Furious* — AI2, 2024 — applies souping to Stage-2 runs.
 - Paper: *The Llama 3 Herd of Models* — Meta, 2024 — applies souping to SFT candidates.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — uses model merging as one of four [long2short](../post-training/reasoning/long2short.md) methods for long-CoT → short-CoT compression.
+- Paper: *Spectral Rewiring for Exploration, Purification, and Model Merging* — Yu et al., 2026 — SVD-projected variant that makes merging across RL-post-trained experts robust; see [spectral-rewiring](../post-training/spectral-rewiring.md).
