@@ -207,6 +207,9 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[GEPO](gepo.md)** | Any scalar | Group-relative + entropy-conditioned asymmetric shaping | PPO clip | No | Multi-domain RL where GRPO's advantage normalization becomes cross-group non-comparable |
+| **[Distilled RL](distilled-rl.md)** | Any scalar + teacher logits | GRPO advantages + reward-gated teacher KL | PPO clip | No | Cross-family teacher/student transfer that pure OPD can't do |
+| **[TOPL](topl.md)** | Per-token correctness labels | (Not a policy-gradient; classifier + LoRA-as-steering) | — | No | Off-policy training on trajectories with per-token labels, minimizing distribution-shift damage |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
