@@ -103,7 +103,10 @@ No depth file yet.
 
 Agents make jailbreaks higher-stakes: "produce harmful text" becomes "take a harmful action." Most agent-misuse attacks are compositions of a jailbreak (or prompt injection) plus the agent's own privilege. Apollo's in-context scheming results (Meinke et al. 2024) and many red-teaming reports of frontier agents are evaluated here.
 
-No depth file yet.
+Depth files:
+
+- [self-state-attack](self-state-attack.md) — persistence via corruption of the agent's own memory/config files at the OS layer.
+- [manager-coercion-benchmark](manager-coercion-benchmark.md) — an eval for coercion and deception in multi-agent (manager/subordinate) systems.
 
 ---
 
