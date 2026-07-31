@@ -5,7 +5,7 @@
 **TL;DR:** LLM adversarial attacks split into five classes by what the attacker is trying to do: **bypass refusal** (jailbreaks), **coerce the model via untrusted context** (prompt injection), **extract training data or model weights** (extraction), **manipulate the training process** (poisoning, backdoor), or **misuse granted agent privileges** (agent misuse). Each class has its own threat model, defenses, and literature. This taxonomy names the class boundaries; the jailbreak-specific organization lives in [_jailbreaks](_jailbreaks.md), and each sub-class will have its own page as depth files accumulate.
 
 **Related taxonomies:** [_jailbreaks](_jailbreaks.md) — the detailed jailbreak sub-taxonomy.
-**Depth files covered here:** (jailbreak depth files linked from [_jailbreaks](_jailbreaks.md))
+**Depth files covered here:** [prompt-injection](prompt-injection.md) · (jailbreak depth files linked from [_jailbreaks](_jailbreaks.md))
 
 ---
 
@@ -62,7 +62,7 @@ Distinct from jailbreaks because:
 - Defense lives at the system architecture level (trust boundaries, output validation, privilege separation) rather than at the model refusal level.
 - Mechanisms overlap with jailbreaks (both exploit instruction-following), but the threat model is different enough to analyze separately.
 
-No depth file yet.
+Depth file: [prompt-injection](prompt-injection.md).
 
 ### 3. Extraction
 
