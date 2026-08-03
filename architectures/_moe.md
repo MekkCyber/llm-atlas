@@ -108,3 +108,4 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 - Paper: *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models* — Dai et al., 2024 — fine-grained + shared experts.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — aux-loss-free balancing at 671B scale.
 - Paper: *Mixture-of-Experts with Expert Choice Routing* — Zhou et al., 2022.
+- Paper: *Beyond Geometric Complementarity: Coherent Overlap in Sparse Mixture-of-Experts Routing* — Tian et al., 2026 — separates geometric from functional redundancy in routing analysis; see [moe-routing-analysis](moe-routing-analysis.md).
