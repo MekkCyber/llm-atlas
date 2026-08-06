@@ -139,6 +139,7 @@ Stacking them is the real defense; no single layer handles all five classes.
 - Paper: *Scalable Extraction of Training Data from (Production) Language Models* — Nasr et al., 2023, [arXiv 2311.17035](https://arxiv.org/abs/2311.17035) — repetition-based extraction at scale.
 - Paper: *Sleeper Agents: Training Deceptive LLMs That Persist Through Safety Training* — Hubinger et al., Anthropic, 2024, [arXiv 2401.05566](https://arxiv.org/abs/2401.05566) — the canonical backdoor-via-training-corruption result.
 - Paper: *Universal and Transferable Adversarial Attacks on Aligned Language Models (GCG)* — Zou et al., 2023, [arXiv 2307.15043](https://arxiv.org/abs/2307.15043) — gradient-based white-box jailbreaks; straddles jailbreaks and adversarial-ML proper.
+- Paper: *SkillJack: Persistent Skill Backdoors in Self-Evolving Agents* — Ying et al., Tencent Zhuque Lab, 2026, [arXiv 2608.03509](https://arxiv.org/abs/2608.03509) — an experience-to-skill backdoor variant that sits between poisoning and agent misuse; see [skilljack](skilljack.md).
 
 ---
 
