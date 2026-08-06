@@ -5,7 +5,7 @@
 **TL;DR:** Attention is permutation-equivariant — shuffle the tokens and you get the shuffled output. Models need position information injected explicitly. There are four main families (absolute, relative, rotary, bias-based), and modern LLMs have converged on rotary (RoPE) with interpolation tricks (YaRN, NTK-aware) for long context.
 
 **Related taxonomies:** *(none yet)*
-**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md) · [rope](rope.md)
+**Depth files covered here:** [sinusoidal-encoding](sinusoidal-encoding.md) · [rope](rope.md) · [alibi](alibi.md)
 
 ---
 
@@ -33,7 +33,7 @@ Every positional-encoding scheme injects a signal that is a **function of positi
 | Learned absolute (no depth file yet) | Absolute | Trainable vector per position | Cannot extrapolate past trained max length | Simple, historical (GPT-2 era) |
 | T5 relative bias (no depth file yet) | Relative | Learned scalar bias on attention logits based on distance | Bias is a learned lookup, bounded by training |  Encoder-decoder line (T5 family) |
 | [RoPE](rope.md) | Rotary | Rotate Q and K by position-dependent angles | Rotation implements relative position implicitly | **Modern default** — LLaMA, Qwen, DeepSeek, Mistral, Kimi |
-| ALiBi (no depth file yet) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all | Cheap, strong length extrapolation without retraining |
+| [ALiBi](alibi.md) | Bias | Static distance-proportional bias on logits, no params | No learned position params at all; FP16/BF16 underflow can zero out long-distance heads | Cheap, strong length extrapolation without retraining |
 | YaRN / NTK-aware RoPE (covered in [rope](rope.md)) | Rotary extension | Interpolate/scale RoPE frequencies post-hoc | Requires a short fine-tune to fully adapt | Extending a trained RoPE model's context (e.g. 4k → 128k) |
 | LongRoPE (no depth file yet) | Rotary extension | Non-uniform per-dimension frequency scaling | More complex than YaRN, slightly stronger | Aggressive context extension |
 
@@ -65,3 +65,4 @@ Once a RoPE model is trained, YaRN and NTK-aware scaling let you multiply its co
 - Paper: *YaRN: Efficient Context Window Extension* — Peng et al., 2023 — https://arxiv.org/abs/2309.00071
 - Paper: *LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens* — Ding et al., 2024.
 - Paper: *Exploring the Limits of Transfer Learning (T5)* — Raffel et al., 2019 — relative position bias.
+- Paper: *When Attention Goes Blind: Numerical Failure in ALiBi Positional Encodings* — Schröder et al., 2026 — [arXiv 2608.03994](https://arxiv.org/abs/2608.03994). ALiBi's linear-bias formula underflows in FP16/BF16 and can silently blind heads; four training-time mitigations proposed.
