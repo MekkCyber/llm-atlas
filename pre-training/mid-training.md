@@ -100,3 +100,4 @@ The exact percentage matters less than having the phase at all and getting the m
 - Paper: *The Llama 3 Herd of Models* — Meta, 2024 — describes the annealing phase and its data mix.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — late-stage high-quality continuation.
 - Paper: *MiniCPM: Unveiling the Potential of Small Language Models with Scalable Training Strategies* — OpenBMB, 2024 — small-model variant of the same pattern, with stability analysis of the LR annealing choice.
+- Paper: *Knowledge Distillation During Mid-Training Favors Reasoning over Factual Recall* — He et al., 2026 — shows forward-KL KD flips sign at mid-training; introduces [switch-distillation](switch-distillation.md) as a per-token fix.
