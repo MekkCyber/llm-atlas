@@ -5,7 +5,7 @@
 **TL;DR:** Every LLM tensor lives in one of a small zoo of numeric formats. They differ along three axes: **total bit width** (memory cost), **exponent vs mantissa split** (range vs precision tradeoff), and **scale granularity** (per-tensor, per-channel, per-block). For training today the defaults are BF16 with FP32 master weights; for FP8 training, 1×128 / 128×128 tile-scaled E4M3. For weight-only inference quantization, INT4 or NF4 is standard. Microscaling (MX) formats are replacing ad-hoc block scaling as the OCP standard from Blackwell onward.
 
 **Related taxonomies:** none yet.
-**Depth files covered here:** [fp8](fp8.md) · others as they land.
+**Depth files covered here:** [fp8](fp8.md) · [nvfp4](nvfp4.md) · others as they land.
 
 ---
 
@@ -57,6 +57,7 @@ where `element` is the low-precision storage and `scale` is kept in higher preci
 | INT4 | 4 | signed integer | ±7 | — | GPTQ/AWQ weight-only inference |
 | NF4 | 4 | 16 pre-defined levels (quantiles of N(0,1)) | symmetric | — | QLoRA weight quantization |
 | MXFP4 | 4 per element + 8 scale / 32 | E2M1 elements, E8M0 block scale | 6.0 scaled | — | OCP microscaling 4-bit inference / training |
+| [NVFP4](nvfp4.md) | 4 per element + 8 scale / 16 | E2M1 elements, **E4M3 block scale** | 6.0 scaled | — | NVIDIA Blackwell W4A4 inference — tighter block scale than MXFP4 |
 
 ---
 
@@ -121,4 +122,5 @@ Because the scale is a pure power of two, rescaling a block is a bit-shift in th
 - Paper: *QLoRA: Efficient Finetuning of Quantized LLMs* — Dettmers et al., 2023 — NF4 definition.
 - Paper: *GPTQ: Accurate Post-Training Quantization* — Frantar et al., 2022 — INT4 with group-wise scales.
 - Paper: *SmoothQuant* — Xiao et al., 2022 — per-channel weight / per-token activation INT8.
-- NVIDIA Hopper and Blackwell architecture whitepapers — hardware support for FP8 and MXFP formats.
+- NVIDIA Hopper and Blackwell architecture whitepapers — hardware support for FP8, MXFP, and NVFP4 formats.
+- Paper: *Why Gated DeltaNet Survives 4-Bit Quantization* — Kozyrev & Maiboroda, 2026 — arXiv:2609.04098 — NVFP4 W4A4 at 27B; introduces the [nvfp4](nvfp4.md) depth page.
