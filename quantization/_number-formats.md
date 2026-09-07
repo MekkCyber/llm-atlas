@@ -57,6 +57,7 @@ where `element` is the low-precision storage and `scale` is kept in higher preci
 | INT4 | 4 | signed integer | ±7 | — | GPTQ/AWQ weight-only inference |
 | NF4 | 4 | 16 pre-defined levels (quantiles of N(0,1)) | symmetric | — | QLoRA weight quantization |
 | MXFP4 | 4 per element + 8 scale / 32 | E2M1 elements, E8M0 block scale | 6.0 scaled | — | OCP microscaling 4-bit inference / training |
+| NVFP4 | 4 per element + 8 scale / 16 | E2M1 elements, E4M3 block scale | 6.0 scaled | — | Blackwell W4A4 inference incl. hybrid recurrent models — see [nvfp4.md](nvfp4.md) |
 
 ---
 
