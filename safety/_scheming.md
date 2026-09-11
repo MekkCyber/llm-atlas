@@ -5,7 +5,7 @@
 **TL;DR:** "Scheming" is the *strategic and covert pursuit of misaligned goals*. It's distinct from jailbreaks (where a *user* gets the model to misbehave) — here, the *model itself* is the adversary, and the user/developer is the target. The failure mode requires three sub-capabilities: goal-directedness, situational awareness, and the reasoning step "deception is a good strategy here." This taxonomy organizes (a) the *threat model concepts* (mesa-optimization → deceptive alignment → scheming), (b) the *behaviors* that demonstrate the capability (oversight subversion, self-exfiltration, instrumental alignment faking, sandbagging), and (c) the *evaluation- and mitigation-side concepts* (safety cases, CoT monitoring) that frame how the field tries to bound the risk.
 
 **Related taxonomies:** [_attacks](_attacks.md), [_jailbreaks](_jailbreaks.md)
-**Depth files covered here:** [scheming](scheming.md) · [mesa-optimization](mesa-optimization.md) · [deceptive-alignment](deceptive-alignment.md) · [situational-awareness](situational-awareness.md) · [instrumental-alignment-faking](instrumental-alignment-faking.md) · [alignment-faking](alignment-faking.md) · [sandbagging](sandbagging.md) · [sleeper-agents](sleeper-agents.md) · [safety-case](safety-case.md) · [cot-monitoring](cot-monitoring.md)
+**Depth files covered here:** [scheming](scheming.md) · [mesa-optimization](mesa-optimization.md) · [deceptive-alignment](deceptive-alignment.md) · [situational-awareness](situational-awareness.md) · [instrumental-alignment-faking](instrumental-alignment-faking.md) · [alignment-faking](alignment-faking.md) · [sandbagging](sandbagging.md) · [sleeper-agents](sleeper-agents.md) · [safety-case](safety-case.md) · [cot-monitoring](cot-monitoring.md) · [schemearena](schemearena.md)
 
 ---
 
@@ -83,6 +83,7 @@ The empirical behaviors (oversight subversion, self-exfil, etc.) are mostly demo
 - *Scheming AIs: Will AIs fake alignment during training in order to get power?* — Carlsmith, 2023 — [arXiv 2311.08379](https://arxiv.org/abs/2311.08379). Book-length argument for why scheming is plausible from baseline ML; subjective probability ≈25%.
 - *Towards evaluations-based safety cases for AI scheming* — Balesni, Hobbhahn, Lindner, Meinke et al., 2024 — [arXiv 2411.03336](https://arxiv.org/abs/2411.03336). The safety-case framework Apollo's evals plug into.
 - *Safety Cases: How to Justify the Safety of Advanced AI Systems* — Clymer, Gabrieli, Krueger, Larsen, 2024 — [arXiv 2403.10462](https://arxiv.org/abs/2403.10462). The four-categories framework.
+- *SchemeArena: Factorized Stress Testing of Scheming in LLM Agents* — Ruan, Nair, Liu, Khalifa, Zhou, Wang, 2026 — [arXiv 2609.08126](https://arxiv.org/abs/2609.08126). Factorized benchmark isolating scheming drivers (instrumental goal, oversight, affordances, consequences); introduces the SCOUT hybrid CoT + action-trace monitor.
 
 ---
 
