@@ -35,6 +35,11 @@ Evaluation is the only signal you have during training that says "this is workin
 - [LiveCodeBench](livecodebench.md) — continuously-updated, contamination-resistant competitive-programming benchmark. Four scenarios (generation, repair, execution, test-prediction). Not saturated.
 - [Codeforces as a benchmark](codeforces-benchmark.md) — how papers operationalize the competitive-programming platform as an LLM eval (Elo rating, percentile).
 
+### Agents / discovery / world-models
+- [ExplorationBench](explorationbench.md) — verifiable "Alien World" sandboxes with unfamiliar rules; separates *exploration* (rule discovery) from *exploitation* (rule application). 141 tasks.
+- [WROP](wrop.md) — cognitive-science-inspired object-permanence probe for video-generation world models. 150 tasks across six categories (occlusion, containment, support, continuity, solidity, cohesion).
+- [Theorem interestingness](theorem-interestingness.md) — a proof/statement length-ratio metric for ranking mathematical conjectures, backed by a 27B proof-difficulty predictor.
+
 ## Reading Order
 
 1. Capability / knowledge — [MMLU](mmlu.md), [IFEval](ifeval.md).

@@ -207,6 +207,10 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[SC-GRPO](sc-grpo.md)** | Downstream quality − semantic-drift term | Group-relative (z-score) | PPO clip | No | Prompt-rewriter LLMs where intent preservation matters (WanPE) |
+| **[RDPO](rdpo.md)** | Outcome reward + per-role rubric | Group-relative *per role* | PPO clip | No | Multi-role agents (Planner + Synthesizer) with role-shaped credit |
+| **[AV-GRPO](av-grpo.md)** | Modality-anchored sub-rewards (audio, video, sync) | Group-relative per stream, summed | PPO clip on diffusion denoising ratios | No | Joint audio-video diffusion post-training |
+| **[RLCD](../safety/rlcd-guard.md)** | Calibration score (Brier / proper scoring rule) | Group-relative on prob-vector outputs | PPO clip | No | Training calibrated multi-question guard/classifier models |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
@@ -240,6 +244,10 @@ All of these are the same policy-gradient skeleton with different specialization
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale verifiable-reward RL, including the [long-CoT RL](reasoning/long-cot-rl.md) / R1-Zero result.
 - Paper: *Tülu 3* — AI2, 2024 — canonical open recipe stacking SFT + DPO + [RLVR](rlvr.md).
 - Textbook reference: Sutton & Barto, *Reinforcement Learning: An Introduction* (2018) — for the classical RL fundamentals (MDPs, policy gradient, value functions).
+- Paper: *WanPE: Towards Cinematic Prompt Enhancement for Modern Text-to-Video Generation* — Zhu et al., 2026 — introduces [SC-GRPO](sc-grpo.md).
+- Paper: *IterSynth: Rethinking Deep Search Agents via Role-Decoupled Iterative Synthesis* — Wu et al., 2026 — introduces [RDPO](rdpo.md).
+- Paper: *AV-GRPO: Modality-Anchored Decoupling Diffusion RL for Joint Audio-Video Generation* — Xu et al., 2026 — introduces [AV-GRPO](av-grpo.md).
+- Paper: *Just Ask Jev: RL for Calibrated Decisions as a Zero-Shot Detector of AI Alignment Failures* — Guo et al., 2026 — introduces the [RLCD](../safety/rlcd-guard.md) training regime.
 
 ---
 
