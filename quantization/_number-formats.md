@@ -5,7 +5,7 @@
 **TL;DR:** Every LLM tensor lives in one of a small zoo of numeric formats. They differ along three axes: **total bit width** (memory cost), **exponent vs mantissa split** (range vs precision tradeoff), and **scale granularity** (per-tensor, per-channel, per-block). For training today the defaults are BF16 with FP32 master weights; for FP8 training, 1×128 / 128×128 tile-scaled E4M3. For weight-only inference quantization, INT4 or NF4 is standard. Microscaling (MX) formats are replacing ad-hoc block scaling as the OCP standard from Blackwell onward.
 
 **Related taxonomies:** none yet.
-**Depth files covered here:** [fp8](fp8.md) · others as they land.
+**Depth files covered here:** [fp8](fp8.md) · [fp4](fp4.md) · [nvfp4](nvfp4.md) · others as they land.
 
 ---
 
@@ -122,3 +122,5 @@ Because the scale is a pure power of two, rescaling a block is a bit-shift in th
 - Paper: *GPTQ: Accurate Post-Training Quantization* — Frantar et al., 2022 — INT4 with group-wise scales.
 - Paper: *SmoothQuant* — Xiao et al., 2022 — per-channel weight / per-token activation INT8.
 - NVIDIA Hopper and Blackwell architecture whitepapers — hardware support for FP8 and MXFP formats.
+- Paper: *TRACE: Rollout-Guided QAT for FP4 RL of MoE LMs* — Wang et al., Alibaba, 2026 — end-to-end FP4 (weights, activations, KV cache) for RL rollouts. See [fp4.md](fp4.md).
+- Paper: *TRIAGE: Direction-Aware Mismatch Stabilization of Native NVFP4 Reinforcement Learning* — Zhang et al., 2026 — NVFP4 as a native RL rollout format. See [nvfp4.md](nvfp4.md).
