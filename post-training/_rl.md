@@ -207,6 +207,7 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[ReSPO](respo.md)** | Any scalar | Group-relative | Smooth sign-dependent kernel on sequence IS weight (no clip) | No | Rollout-reuse / off-policy RLVR where clipped surrogates starve gradients |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
