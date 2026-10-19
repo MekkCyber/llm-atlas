@@ -4,7 +4,7 @@
 **TL;DR:** Instead of one attention operation with full dimension, run $h$ parallel attention operations each with a smaller dimension, then concatenate and project. Different heads learn to specialize — one for syntax, one for coreference, one for position — which is the inductive bias that makes Transformers actually work.
 
 **Prereqs:** [attention](../fundamentals/attention.md)
-**Related:** [transformer-block](transformer-block.md)
+**Related:** [transformer-block](transformer-block.md), [gqa](gqa.md), [mla](mla.md), [virtual-head-attention](virtual-head-attention.md), [_attention-variants](_attention-variants.md)
 
 ---
 
