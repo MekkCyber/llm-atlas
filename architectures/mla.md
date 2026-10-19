@@ -4,7 +4,7 @@
 **TL;DR:** An attention variant that **compresses the KV cache** by storing a single low-rank *latent* per token instead of per-head K and V. Heads reconstruct their keys and values on the fly via learned up-projections. A small **decoupled RoPE** slice handles positional encoding separately. Result: 5–10× smaller KV cache than standard multi-head attention at comparable quality, introduced in DeepSeek-V2 and used unchanged in DeepSeek-V3.
 
 **Prereqs:** [attention](../fundamentals/attention.md), [multi-head-attention](multi-head-attention.md), [positional-encoding](../fundamentals/_positional-encoding.md)
-**Related:** [transformer-block](transformer-block.md)
+**Related:** [transformer-block](transformer-block.md), [gqa](gqa.md), [virtual-head-attention](virtual-head-attention.md), [_attention-variants](_attention-variants.md)
 
 ---
 

@@ -170,6 +170,8 @@ Additional rules of thumb:
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — explicit choice of rule-based rewards over neural RMs; tried and rejected PRMs for RL.
 - Paper: *Kimi k1.5: Scaling Reinforcement Learning with LLMs* — Moonshot AI, 2025 — introduces the asymmetric [length-penalty](reasoning/length-penalty.md) shaping reward and the [cot-reward-model](cot-reward-model.md) for math verification.
 - Paper: *Generative Verifiers: Reward Modeling as Next-Token Prediction* — Zhang et al., 2024, arXiv 2408.15240 — concurrent primary source for generative reward modeling.
+- Paper: *Each Reward to Its Relevant Tokens: Reward-Specific Token-Level Credit Assignment for Multi-Reward RL* — Wang et al., 2026, [arXiv 2610.21439](https://arxiv.org/abs/2610.21439) — targets the *composition* corner of this taxonomy: when multiple verifiers coexist, assign each one its own per-token credit mask instead of broadcasting the summed reward. See [mrtpo](mrtpo.md).
+- Paper: *LeanPRM: Lean-Grounded Process Supervision for Natural Language Proof Verification* — Rahman et al., 2026, [arXiv 2610.17697](https://arxiv.org/abs/2610.17697) — replaces human / Monte-Carlo step labels in [PRM](reasoning/prm.md) with Lean-kernel checks. See [leanprm](reasoning/leanprm.md).
 
 ---
 

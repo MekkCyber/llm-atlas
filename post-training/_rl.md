@@ -207,6 +207,9 @@ DPO is the modern default when your training signal is human preferences. PPO/GR
 | **[Long-CoT RL](reasoning/long-cot-rl.md)** | Rule-based verifier | GRPO or mirror descent | PPO clip or $\ell_2$ | No | Eliciting reasoning from a strong base without CoT SFT |
 | **[DPO](dpo.md)** | Pairwise preferences | Closed-form | KL via log-ratio | No | Preference optimization without rollouts |
 | **KTO / IPO / SimPO** | Unary or noisy preferences | DPO-variant (no depth file yet) | KL via log-ratio | No | Non-paired preference data or label noise |
+| **[MRTPO](mrtpo.md)** | Multiple verifiable rewards | Per-reward token mask (JS-divergence counterfactual) × GRPO group-relative | PPO clip | No | Composite RLVR stacks where rewards target different token spans |
+| **[Multi-Session RL (Mosaic)](multi-session-rl.md)** | Any scalar | Trajectory-level group-relative + session-level shaping | PPO clip | No | Long-horizon agents with context compaction / subagent forking |
+| **[Windowed Interaction RL (WIRL)](windowed-interaction-rl.md)** | Delta of an environment metric at each observation | Group-relative across windows at same depth | PPO clip | No | Scientific-loop agents (ML engineering, iterative code, A/B) |
 
 All of these are the same policy-gradient skeleton with different specializations.
 
@@ -240,6 +243,10 @@ All of these are the same policy-gradient skeleton with different specialization
 - Paper: *DeepSeek-R1* — DeepSeek, 2025 — large-scale verifiable-reward RL, including the [long-CoT RL](reasoning/long-cot-rl.md) / R1-Zero result.
 - Paper: *Tülu 3* — AI2, 2024 — canonical open recipe stacking SFT + DPO + [RLVR](rlvr.md).
 - Textbook reference: Sutton & Barto, *Reinforcement Learning: An Introduction* (2018) — for the classical RL fundamentals (MDPs, policy gradient, value functions).
+- Paper: *Each Reward to Its Relevant Tokens* — Wang et al., 2026, arXiv 2610.21439 — reward-specific token-level credit assignment ([MRTPO](mrtpo.md)).
+- Paper: *Mosaic: Multi-Session Agentic Reinforcement Learning* — Xu et al., 2026, arXiv 2610.22174 — [multi-session RL](multi-session-rl.md) formulation.
+- Paper: *MLExpert* — Shi et al., 2026, arXiv 2610.22344 — [Windowed Interaction RL](windowed-interaction-rl.md) credit assignment for ML-engineering agents.
+- Paper: *Waypoint-OPD* — Jiang et al., 2026, arXiv 2610.21601 — gated [on-policy distillation](on-policy-distillation.md) that transfers RL-induced policy shifts.
 
 ---
 
