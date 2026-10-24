@@ -55,6 +55,7 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 | **BASE Layers** (Lewis 2021) — *no depth file yet* | Assignment via linear assignment (balanced by construction) | Solver cost; harder to scale | Research / middle scale |
 | **Router z-loss** (ST-MoE, Zoph 2022) — *no depth file yet* | Penalize $(\log \sum_j \exp(\mathrm{logit}_j))^2$ to bound router-logit magnitude | Another aux term (mild gradient interference) | Stability at large scale; complements load-balance loss |
 | **Node-limited routing** (DeepSeek-V3, 2024) — *no depth file yet* | Hard cap on nodes a token's top-$K$ can span | Reduces routing flexibility at large expert counts | Fine-grained MoE with constrained inter-node bandwidth |
+| [**Meta Expert**](meta-expert.md) (Hong 2026) | Experts shared across all layers (one global pool, not per-layer) | Harder all-to-all pattern; needs layer-conditioned routing | Memory-bound deployment — matches vanilla MoE at 70–80 % of the expert count |
 
 ---
 
