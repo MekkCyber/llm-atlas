@@ -5,7 +5,7 @@
 **TL;DR:** The LR schedule is the multiplier on peak LR across training steps: warmup → main body → [optional final decay]. Modern LLMs use one of three shapes: **classical cosine** (peak → low, one curve), **two-stage cosine** (cosine to a plateau, then further anneal during [mid-training](mid-training.md)), or **[WSD](wsd-schedule.md)** (warmup, stable at peak, then sharp decay). The main design question is where the aggressive decay happens and what data the model sees during it.
 
 **Related taxonomies:** [_training-stability](_training-stability.md)
-**Depth files covered here:** [wsd-schedule](wsd-schedule.md) · [mid-training](mid-training.md)
+**Depth files covered here:** [wsd-schedule](wsd-schedule.md) · [mid-training](mid-training.md) · [air-schedule](air-schedule.md)
 
 ---
 
@@ -39,6 +39,7 @@ The difference between schedules is how aggressive phase 2's decay is and whethe
 | Inverse-square-root | Warmup → `1/√step` | Smooth decay without a pre-set duration | Hard to compare runs at fixed token counts | T5-era, older |
 | Linear decay | Warmup → linear ramp down | Simple | Typically worse than cosine at fixed compute | Small runs where simplicity matters |
 | Cosine with restarts (SGDR) | Warmup → cosine → reset → cosine → … | Multiple minima with LR resets | Rare in LLMs | Computer vision; occasional transfer to LLMs |
+| [AIR](air-schedule.md) | Warmup → affine $1/\sqrt{t}$ decay | Decay shape derived to target an *effective* LR trajectory (ELR), not nominal LR | Requires computing / tracking ELR under weight-normalized training | Weight-normalized pretraining where you want to pin peak and terminal ELR; late-stage ELR is the primary signal |
 
 ## How to choose
 
@@ -70,3 +71,4 @@ If your data mix is flat (same distribution throughout training), classical cosi
 - Paper: *Scaling Laws and Compute-Optimal Training Beyond Fixed Training Durations* — Hägele et al., 2024 — WSD scaling-law analysis.
 - Paper: *The Llama 3 Herd of Models* — Meta, 2024 — two-stage cosine schedule in detail.
 - Paper: *2 OLMo 2 Furious* — AI2, 2024 — two-stage cosine with explicit [mid-training](mid-training.md) phase.
+- Paper: *Your LR Schedule May Not Be Principled* — Yu et al., ByteDance Seed, 2026 — [AIR](air-schedule.md) and the effective-LR-as-scheduling-object thesis.
