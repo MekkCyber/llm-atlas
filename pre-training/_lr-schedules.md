@@ -5,7 +5,7 @@
 **TL;DR:** The LR schedule is the multiplier on peak LR across training steps: warmup → main body → [optional final decay]. Modern LLMs use one of three shapes: **classical cosine** (peak → low, one curve), **two-stage cosine** (cosine to a plateau, then further anneal during [mid-training](mid-training.md)), or **[WSD](wsd-schedule.md)** (warmup, stable at peak, then sharp decay). The main design question is where the aggressive decay happens and what data the model sees during it.
 
 **Related taxonomies:** [_training-stability](_training-stability.md)
-**Depth files covered here:** [wsd-schedule](wsd-schedule.md) · [mid-training](mid-training.md)
+**Depth files covered here:** [wsd-schedule](wsd-schedule.md) · [mid-training](mid-training.md) · [air-schedule](air-schedule.md)
 
 ---
 
@@ -37,6 +37,7 @@ The difference between schedules is how aggressive phase 2's decay is and whethe
 | **Two-stage cosine** | Warmup → cosine to plateau (Stage 1) → further anneal during [mid-training](mid-training.md) (Stage 2) | Cosine decays to ~30% of peak, not zero | Boundary between stages must be planned in advance | **[OLMo 2](../case-studies/olmo-2.md), Llama 3** |
 | [WSD](wsd-schedule.md) | Warmup → constant at peak → sharp decay | LR stays at peak until decay phase starts | Stable-endpoint checkpoint is reusable; lets you fork many decay experiments from one Stage 1 | MiniCPM, DeepSeekMath — when you want to iterate on Stage 2 data mixes cheaply |
 | Inverse-square-root | Warmup → `1/√step` | Smooth decay without a pre-set duration | Hard to compare runs at fixed token counts | T5-era, older |
+| [AIR](air-schedule.md) | Warmup → affine `1/√t` on *effective* LR | Shapes effective LR (post-normalization) over a fixed horizon with two affine params | Needs to track or model weight norms; "peak LR" means peak *effective* LR | Weight-normalized MoE pretraining; large-scale runs where ELR drift matters |
 | Linear decay | Warmup → linear ramp down | Simple | Typically worse than cosine at fixed compute | Small runs where simplicity matters |
 | Cosine with restarts (SGDR) | Warmup → cosine → reset → cosine → … | Multiple minima with LR resets | Rare in LLMs | Computer vision; occasional transfer to LLMs |
 
