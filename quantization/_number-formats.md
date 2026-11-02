@@ -122,3 +122,4 @@ Because the scale is a pure power of two, rescaling a block is a bit-shift in th
 - Paper: *GPTQ: Accurate Post-Training Quantization* — Frantar et al., 2022 — INT4 with group-wise scales.
 - Paper: *SmoothQuant* — Xiao et al., 2022 — per-channel weight / per-token activation INT8.
 - NVIDIA Hopper and Blackwell architecture whitepapers — hardware support for FP8 and MXFP formats.
+- Paper: *Broken on Arrival: Non-Functional Quantized LLM Artifacts in Public Model Registries and How to Catch Them* — Patodiya, 2026 — shows low-bit (≤Q4) GGUF builds of small (≤4B) models silently fail without [imatrix-calibration](imatrix-calibration.md); proposes a 15-task functional screen.
