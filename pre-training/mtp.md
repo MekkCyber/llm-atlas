@@ -4,7 +4,7 @@
 **TL;DR:** Train the model to predict not just the next token but the next **$k$** tokens at each position, via one or more lightweight auxiliary "MTP modules" on top of the main backbone. Gives a denser training signal (more loss per position), a modest downstream quality lift, and — kept at inference — enables **speculative decoding** with an ~1.8× speedup. DeepSeek-V3 uses depth-1 MTP (predicts one extra token beyond next).
 
 **Prereqs:** [transformer-block](../architectures/transformer-block.md)
-**Related:** none
+**Related:** [soft-mtp](soft-mtp.md)
 
 ---
 
@@ -128,3 +128,4 @@ DeepSeek-V3 reports **85–90% acceptance rate** for the second token, giving an
 - Paper: *Better & Faster Large Language Models via Multi-token Prediction* — Gloeckle et al., Meta, 2024 — introduces the multi-token-prediction objective with ablations at up to $D=4$.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — depth-1 MTP at 671B scale with the $\lambda$ schedule and speculative-decoding integration.
 - Paper: *Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads* — Cai et al., 2024 — the post-hoc multi-head alternative.
+- Paper: *Multi-Token Prediction Done Right* — Teoh et al., MIT, 2026 — isolates the self-distillation sub-signal in the MTP objective; see [soft-mtp](soft-mtp.md).
