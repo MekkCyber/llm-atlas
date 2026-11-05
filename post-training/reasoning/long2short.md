@@ -22,8 +22,9 @@ long2short is the bridge. Four methods, increasing cost and capability transfer:
 | **Shortest rejection sampling SFT** | 1 SFT pass | supervised | Sample $n=8$, pick shortest correct, SFT on it |
 | **DPO on length pairs** | 1 DPO pass | offline pref | Positive = shortest correct; negatives = incorrect + too-long correct |
 | **long2short RL** | 1 RL phase | online RL | Second RL phase with length-capped rollouts + length penalty |
+| **[LoCo](local-preference-learning.md) — local preference learning** | 1 DPO pass | offline pref | Prefix-matched DPO: pair same prefix with long vs short verified continuation |
 
-Kimi reports long2short RL is the best token-efficient method.
+Kimi reports long2short RL is the best token-efficient method. LoCo (2026, arXiv 2611.04814) adds a prefix-matched variant of the DPO method, reporting 41.7–45.4% math-trace shortening with self-generated data only.
 
 ---
 
@@ -161,3 +162,4 @@ Kimi k1.5's paper names the variants (Sec. 3.4):
 - Related: [dpo](../dpo.md) — the DPO variant uses the standard DPO loss with length-structured preference pairs.
 - Related: [model-souping](../../pre-training/model-souping.md) — the model-merging variant reuses classical weight-averaging.
 - Related: *DeepSeek-R1* — 2025, arXiv 2501.12948 — contrasting case: R1's short-CoT variants come from distilling R1 traces into smaller models, not from a long2short post-processing phase on R1 itself.
+- Paper: *Think Less, Locally: Local Preference Learning for Reasoning Compression* — Jiao, Li, Zhang, Zhou, 2026, arXiv 2611.04814 — adds the LoCo (local preference learning) variant: prefix-matched DPO pairs between the same reasoning state's long and short verified continuations. See [local-preference-learning](local-preference-learning.md).

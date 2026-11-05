@@ -93,3 +93,4 @@ Aux-loss-free balancing is a **batch-level** mechanism: the bias update after ea
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — large-scale application with $\gamma = 0.001$, paired with a small sequence-wise guardrail.
 - Paper: *Switch Transformers* — Fedus et al., 2021 — the auxiliary-loss baseline this replaces. See [load-balancing-loss](load-balancing-loss.md).
 - Paper: *ST-MoE* — Zoph et al., 2022 — auxiliary losses for stability (orthogonal but contrasting).
+- Paper: *Muon Makes the First Mixture-of-Experts Layer Harder to Balance* — 2026, arXiv 2610.37914 — documents a Muon-specific perturbation of first-MoE-layer routing-bias dynamics; the bias-based balancing of this file is what Muon perturbs. See [../pre-training/muon-moe-interaction.md](../pre-training/muon-moe-interaction.md).
