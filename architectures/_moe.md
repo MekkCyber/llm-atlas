@@ -108,3 +108,4 @@ MoE design breaks into two kinds of entries: **system-level designs** (whole mod
 - Paper: *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models* — Dai et al., 2024 — fine-grained + shared experts.
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — aux-loss-free balancing at 671B scale.
 - Paper: *Mixture-of-Experts with Expert Choice Routing* — Zhou et al., 2022.
+- Paper: *SAE Interprets MoE* — Zhuo et al., 2026 — [arXiv:2611.08089](https://arxiv.org/abs/2611.08089) — empirical evidence (via SAE feature attribution on Qwen3-30B-A3B) that fine-grained experts own specific interpretable features, confirming the DeepSeekMoE specialization hypothesis.

@@ -114,3 +114,4 @@ At 256 experts spread across many nodes, naive top-$K$ routing can scatter a tok
 - Paper: *DeepSeek-V3 Technical Report* — DeepSeek, 2024 — 671B total / 37B active configuration.
 - Paper: *Mixtral of Experts* — Jiang et al., 2024 — contrasting coarse-grained design.
 - Paper: *Switch Transformers* — Fedus et al., 2021 — historical top-1 baseline.
+- Paper: *SAE Interprets MoE* — Zhuo et al., 2026 — [arXiv:2611.08089](https://arxiv.org/abs/2611.08089) — SAE feature attribution on Qwen3-30B-A3B validates the fine-grained-expert specialization claim empirically.
