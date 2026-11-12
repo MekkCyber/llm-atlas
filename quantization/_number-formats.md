@@ -5,7 +5,7 @@
 **TL;DR:** Every LLM tensor lives in one of a small zoo of numeric formats. They differ along three axes: **total bit width** (memory cost), **exponent vs mantissa split** (range vs precision tradeoff), and **scale granularity** (per-tensor, per-channel, per-block). For training today the defaults are BF16 with FP32 master weights; for FP8 training, 1×128 / 128×128 tile-scaled E4M3. For weight-only inference quantization, INT4 or NF4 is standard. Microscaling (MX) formats are replacing ad-hoc block scaling as the OCP standard from Blackwell onward.
 
 **Related taxonomies:** none yet.
-**Depth files covered here:** [fp8](fp8.md) · others as they land.
+**Depth files covered here:** [fp8](fp8.md) · [mxfp4](mxfp4.md) · others as they land.
 
 ---
 
